@@ -1,4 +1,4 @@
-\documentclass[a4j]{jarticle}
+\documentclass[a4j, titlepage]{jarticle}
 \usepackage[dvipdfmx]{graphicx}
 \usepackage{ascmac}
 
@@ -158,6 +158,6 @@ MNISTの画像1枚を入力とし，3層ニューラルネットワークを用�
 \subsection*{問題点}
     \begin{itemize}
         \item  postprocessing(y)でベクトルのインデックスを標準出力に出力しているが, このままでは分類するクラスが0からではない場合は正しくない値を出力してしまう.
-        \item この後の課題で実装することではあるが重みWを乱数で設定しているのでこのニューラルネットワークでは正しい結果は得られない. 
+        \item この後の課題で実装することではあるが重みWを乱数で設定しているのでこのニューラルネットワークでは正しい結果は得られない.
     \end{itemize}
 \end{document}
