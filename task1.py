@@ -54,14 +54,13 @@ def postprocessing(y):
     return binary_y
 
 
-
 input_vec, image_size, i, class_sum = input_layer(test_X)
 # print('input', image_size, i, class_sum )
 W1, b1 = preprocessing(image_size, 30, image_size)
 y1 = matrix_operation(W1, input_vec, b1)
-# print('ma', y1)
+# print('matrix', y1)
 y1 = sigmoid(y1)
-# print('si', y1)
+# print('sigmoid', y1)
 W2, b2 = preprocessing(30, class_sum, 30)
 a = matrix_operation(W2, y1, b2)
 # print('a', a)
