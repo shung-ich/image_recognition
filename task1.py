@@ -1,11 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-# x = np.linspace(-10,10)
-# y = 1/(1+np.exp(-x))
-# plt.plot(x,y)
-# plt.show() 
-
 import mnist
+
 train_X = mnist.download_and_parse_mnist_file("train-images-idx3-ubyte.gz")
 train_Y = mnist.download_and_parse_mnist_file("train-labels-idx1-ubyte.gz")
 test_X = mnist.download_and_parse_mnist_file("t10k-images-idx3-ubyte.gz")
@@ -35,11 +31,9 @@ def input_layer(X):
     input_vector = input_image.reshape(1,image_size)
     return input_vector, image_size, i, class_num
 
-
-
 def matrix_operation(W, X, b):
     return np.dot(X, W) + b
-    
+
 def sigmoid(x):
     return (1 / (1 + np.exp(-1 * x)))
 
@@ -55,9 +49,8 @@ def softmax(a):
     return y
 
 def postprocessing(y):
-    # max_y = max(y)
-    # binary_y = [1 if y_i == np.amax(y) else 0 for y_i in y]
     binary_y = np.where(y == np.amax(y), 1, 0)
+    print(np.where(binary_y == 1)[1][0])
     return binary_y
 
 
@@ -73,6 +66,6 @@ W2, b2 = preprocessing(30, class_sum, 30)
 a = matrix_operation(W2, y1, b2)
 # print('a', a)
 y2 = softmax(a)
-print(y2)
+# print(y2)
 binary_y = postprocessing(y2)
-print(binary_y)
+# print(binary_y)
