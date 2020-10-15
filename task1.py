@@ -44,7 +44,6 @@ def softmax(a):
     # print('e', exp_a)
     sum_exp = np.sum(exp_a)
     # print('sum', sum_exp)
-    # y =  np.exp(a_i - alpha) / sum for a_i in a
     y = exp_a / sum_exp
     return y
 
