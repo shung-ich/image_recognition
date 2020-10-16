@@ -1,0 +1,163 @@
+\documentclass[a4j, titlepage]{jarticle}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{ascmac}
+
+\usepackage{listings,jlisting}
+
+\lstset{%
+  language={C},
+  basicstyle={\small},%
+  identifierstyle={\small},%
+  commentstyle={\small\itshape},%
+  keywordstyle={\small\bfseries},%
+  ndkeywordstyle={\small},%
+  stringstyle={\small\ttfamily},
+  frame={tb},
+  breaklines=true,
+  columns=[l]{fullflexible},%
+  numbers=left,%
+  xrightmargin=0zw,%
+  xleftmargin=3zw,%
+  numberstyle={\scriptsize},%
+  stepnumber=1,
+  numbersep=1zw,%
+  lineskip=-0.5ex%
+}
+
+\begin{document}
+
+\title{計算機科学実験及演習4 画像認識　\\ \bf レポート1}
+% ↓ここに自分の氏名を記入
+\author{高橋駿一　2018年度入学 1029-30-3949}
+\西暦
+\date{提出日: \today} % コンパイル時の日付が自動で挿入される
+\maketitle
+
+\clearpage
+
+\section*{課題1}
+\subsection*{課題内容}
+MNISTの画像1枚を入力とし，3層ニューラルネットワークを用いて，0～9の値のうち1つを出力するプログラムを作成した．
+
+\subsection*{作成したプログラムの説明}
+    \subsubsection*{}
+        \begin{lstlisting}[caption=ライブラリのインポート,label=fuga]
+        import numpy as np
+        import matplotlib.pyplot as plt
+        import mnist
+        \end{lstlisting}
+        ライブラリのインポートを行った.
+        なお, 本問ではpyplotは活用しないが今後のことを考えてインポートした.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=ライブラリのインポート,label=fuga]
+        train_X = mnist.download_and_parse_mnist_file("train-images-idx3-ubyte.gz")
+        train_Y = mnist.download_and_parse_mnist_file("train-labels-idx1-ubyte.gz")
+        test_X = mnist.download_and_parse_mnist_file("t10k-images-idx3-ubyte.gz")
+        test_Y = mnist.download_and_parse_mnist_file("t10k-labels-idx1-ubyte.gz")
+        \end{lstlisting}
+        訓練データとテストデータの読み込みを行った.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=前処理,label=fuga]
+        def preprocessing(N, M, d):
+            np.random.seed(seed=32)
+            W = np.random.normal(0, 1/N, (d, M))
+            b = np.random.normal(0, 1/N, (1, M))
+            return W, b
+        \end{lstlisting}
+        前処理を行うための関数である.
+        N:手前の層のノード数 , M:中間層のノード数 , d:画像を表すベクトルの次元数として
+        重みWと切片ベクトルbを分散1/N, 平均0の正規分布に従う乱数で設定する.
+        なお, 実行ごとに同じ結果を得るためにseed値は32で固定している.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=入力層の処理,label=fuga]
+        def input_layer(X):
+            i = int(input())
+            input_image = np.array(X[i])
+            image_size = input_image.size
+            image_num = len(X)
+            class_num = 10
+            input_vector = input_image.reshape(1,image_size)
+            return input_vector, image_size, i, class_num
+        \end{lstlisting}
+        入力層の処理を行うための関数である.
+        引数XはMINISTの画像データであり, 標準入力で0～9999の値をiとして受け取り,
+        Xのi番目のデータを入力画像とする.
+        そしてこの画像データのサイズをimage\_sizeに格納し, 画像データをimage\_size次元ベクトルのimage\_vectorに変換し, これらの変数やクラス数class\_numを返す.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=線形和の計算,label=fuga]
+        def matrix_operation(W, X, b):
+            return np.dot(X, W) + b
+        \end{lstlisting}
+        多次元の入力を受け取ってその線形和を出力する関数である.
+        各ノードの入力X, 重みW, 切片ベクトルbにより計算を行う.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=シグモイド関数,label=fuga]
+        def sigmoid(x):
+            return (1 / (1 + np.exp(-1 * x)))
+        \end{lstlisting}
+        引数xにシグモイド関数を適用した値を返す関数である.
+        多次元ベクトルxをそのまま扱うことができる.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=ソフトマックス関数,label=fuga]
+        def softmax(a):
+            alpha = np.amax(a)
+            exp_a = np.exp(a - alpha)
+            sum_exp = np.sum(exp_a)
+            y = exp_a / sum_exp
+            return y
+        \end{lstlisting}
+        引数aにソフトマックス関数を適用した値を返す関数である.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=後処理,label=fuga]
+        def postprocessing(y):
+            binary_y = np.where(y == np.amax(y), 1, 0)
+            print(np.where(binary_y == 1)[1][0])
+            return binary_y
+        \end{lstlisting}
+        後処理を行うための関数である.
+        出力層の値をベクトルとして受け取り, 値が一番大きいものを1, それ以外の値を0に変換し, 1に変換された値に対応するインデックス(0～9)を標準出力に出力する.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=課題1の実行,label=fuga]
+        input_vec, image_size, i, class_sum = input_layer(test_X)
+        # print('input', image_size, i, class_sum )
+        W1, b1 = preprocessing(image_size, 30, image_size)
+        y1 = matrix_operation(W1, input_vec, b1)
+        # print('matrix', y1)
+        y1 = sigmoid(y1)
+        # print('sigmoid', y1)
+        W2, b2 = preprocessing(30, class_sum, 30)
+        a = matrix_operation(W2, y1, b2)
+        # print('a', a)
+        y2 = softmax(a)
+        # print(y2)
+        binary_y = postprocessing(y2)
+        # print(binary_y)
+        \end{lstlisting}
+        ここまでに作成した関数を活用して課題1の処理を実行した.
+        なお, 中間層のノード数は30とした.
+
+\subsection*{実行結果}
+    標準入力に400を入力すると2が標準出力に出力された.
+    コメントアウトを外すことで各段階でも正しく動作していることが確認できた.
+
+\subsection*{工夫点}
+    \begin{itemize}
+        \item  この後の課題でも活用しやすくするために前処理, 入力層の処理, 線形和の計算, シグモイド関数, ソフトマックス関数, 後処理を別々の関数として実装した.
+        \item 入力層の処理を行うinput\_layer(X)で画像のサイズやクラス数を後の実装のために変更が可能な仕様にした.
+        \item 線形和の計算を行うmatrix\_operationは中間層への入力を計算する層と出力層への入力を計算する層のそれぞれの計算に対応している.
+        \item ソフトマックス関数を適用するsoftmaxでfor文を使わず多次元ベクトルのまま処理できるように記述した.
+    \end{itemize}
+\subsection*{問題点}
+    \begin{itemize}
+        \item  postprocessing(y)でベクトルのインデックスを標準出力に出力しているが, このままでは分類するクラスが0からではない場合は正しくない値を出力してしまう.
+        \item この後の課題で実装することではあるが重みWを乱数で設定しているのでこのニューラルネットワークでは正しい結果は得られない.
+    \end{itemize}
+\end{document}
