@@ -10,7 +10,6 @@ test_X = mnist.download_and_parse_mnist_file("t10k-images-idx3-ubyte.gz")
 test_Y = mnist.download_and_parse_mnist_file("t10k-labels-idx1-ubyte.gz")
 # print(len(test_X))
 
-
 from pylab import cm
 # idx = 100
 # plt.imshow(train_X[idx], cmap=cm.gray)
@@ -30,7 +29,7 @@ def create_batch(X):
     batch_index = np.random.choice(len(X), batch_size)
     # X_batch = X[batch_index]
     # return X_batch
-    return batch_index
+    return batch_index    
 
 def input_layer(X):
     i = int(input())
@@ -45,14 +44,9 @@ def input_layer2(X):
     batch_index = create_batch(X)
     input_images = X[batch_index]
     image_size = input_images[0].size
-    image_num = len(X)
     class_num = 10
     input_vector = input_images.reshape(100,image_size)
-    return input_vector, image_size, i, class_num
-
-input_vec, image_size, i, class_sum = input_layer2(test_X)
-print('input', image_size, i, class_sum )
-
+    return input_vector, image_size, batch_index, class_num
 
 def matrix_operation(W, X, b):
     return np.dot(X, W) + b
@@ -75,21 +69,31 @@ def postprocessing(y):
     print(np.where(binary_y == 1)[1][0])
     return binary_y
 
-
-
+def cross_entropy_loss(y_pred, y_ans):
+    B = len(y_pred)
+    E = 1 / B * np.sum((-1) * y_ans * np.log(y_pred))
+    return E
 
 
 # input_vec, image_size, i, class_sum = input_layer(test_X)
 # print('input', image_size, i, class_sum )
-# W1, b1 = preprocessing(image_size, 30, image_size)
-# y1 = matrix_operation(W1, input_vec, b1)
-# # print('matrix', y1)
-# y1 = sigmoid(y1)
-# # print('sigmoid', y1)
-# W2, b2 = preprocessing(30, class_sum, 30)
-# a = matrix_operation(W2, y1, b2)
-# # print('a', a)
-# y2 = softmax(a)
-# # print(y2)
-# binary_y = postprocessing(y2)
-# # print(binary_y)
+
+input_vec, image_size, batch_index, class_sum = input_layer2(test_X)
+batch_label = train_Y[batch_index]
+y_ans = np.identity(10)[batch_label]
+# print(batch_label)
+# print('input', image_size, batch_index, class_sum)
+W1, b1 = preprocessing(image_size, 30, image_size)
+y1 = matrix_operation(W1, input_vec, b1)
+# print('matrix', y1)
+y1 = sigmoid(y1)
+# print('sigmoid', y1)
+W2, b2 = preprocessing(30, class_sum, 30)
+a = matrix_operation(W2, y1, b2)
+# print('a', a)
+y2 = softmax(a)
+# print(y2)
+binary_y = postprocessing(y2)
+# print(binary_y)
+E = cross_entropy_loss(y2, y_ans)
+print(E)
