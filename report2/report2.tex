@@ -1,0 +1,114 @@
+\documentclass[a4j, titlepage]{jarticle}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{ascmac}
+
+\usepackage{listings,jlisting}
+
+\lstset{%
+  language={C},
+  basicstyle={\small},%
+  identifierstyle={\small},%
+  commentstyle={\small\itshape},%
+  keywordstyle={\small\bfseries},%
+  ndkeywordstyle={\small},%
+  stringstyle={\small\ttfamily},
+  frame={tb},
+  breaklines=true,
+  columns=[l]{fullflexible},%
+  numbers=left,%
+  xrightmargin=0zw,%
+  xleftmargin=3zw,%
+  numberstyle={\scriptsize},%
+  stepnumber=1,
+  numbersep=1zw,%
+  lineskip=-0.5ex%
+}
+
+\begin{document}
+
+\title{計算機科学実験及演習4 画像認識　\\ \bf レポート2}
+% ↓ここに自分の氏名を記入
+\author{高橋駿一　2018年度入学 1029-30-3949}
+\西暦
+\date{提出日: \today} % コンパイル時の日付が自動で挿入される
+\maketitle
+
+\clearpage
+
+\section*{課題2}
+\subsection*{課題内容}
+[課題1]のコードをベースに, ミニバッチ(=複数枚の画像)を入力可能とするように改良し, さらにクロスエントロピー誤差を計算するプログラムを作成する. なお, 本レポートは[課題1]からの差分について記述した.
+
+\subsection*{作成したプログラムの説明}
+    \subsubsection*{}
+        \begin{lstlisting}[caption=ミニバッチのインデックスを作成,label=fuga]
+        def create_batch(X):
+            batch_size = 100
+            np.random.seed(seed=32)
+            batch_index = np.random.choice(len(X), batch_size)
+            return batch_index
+        \end{lstlisting}
+        ミニバッチのインデックスを作成する関数である.
+        訓練データを受け取り, 0以上訓練データのサイズ以下の整数値をbatch\_sizeの値の個数取得した. なお, 実行ごとに同じ結果を得るためにseed値は32で固定している.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=ミニバッチを活用可能な入力層の処理,label=fuga]
+        def input_layer2(X):
+            batch_index = create_batch(X)
+            input_images = X[batch_index]
+            image_size = input_images[0].size
+            class_num = 10
+            input_vector = input_images.reshape(100,image_size)
+            return input_vector, image_size, batch_index, class_num
+        \end{lstlisting}
+        ミニバッチを入力可能とするように改良した, 入力層の処理を行うための関数である.
+        入力データのインデックスを標準入力から取得するのではなく, create\_batch(X)によって取得し, input\_imagesとしてミニバッチを作成した. さらに, ミニバッチの状態で各画像データをimage\_size次元に変更するためにinput\_imagesをバッチサイズ(100)×image\_sizeの行列に変形した.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=クロスエントロピー誤差の計算,label=fuga]
+        def cross_entropy_loss(y_pred, y_ans):
+            B = len(y_pred)
+            E = 1 / B * np.sum((-1) * y_ans * np.log(y_pred))
+            return E
+        \end{lstlisting}
+        クロスエントロピー誤差を計算するための関数である. ニューラルネットワークの出力y\_predと正解のクラスをone-hot vector表記にしたy\_ansを入力として受け取り, クロスエントロピー誤差を計算する. なお, ミニバッチの状態で本計算を実行できる.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=課題2の実行,label=fuga]
+        input_vec, image_size, batch_index, class_sum = input_layer2(test_X)
+        batch_label = train_Y[batch_index]
+        y_ans = np.identity(10)[batch_label]
+        # print(batch_label)
+        # print('input', image_size, batch_index, class_sum)
+        W1, b1 = preprocessing(image_size, 30, image_size)
+        y1 = matrix_operation(W1, input_vec, b1)
+        # print('matrix', y1)
+        y1 = sigmoid(y1)
+        # print('sigmoid', y1)
+        W2, b2 = preprocessing(30, class_sum, 30)
+        a = matrix_operation(W2, y1, b2)
+        # print('a', a)
+        y2 = softmax(a)
+        # print(y2)
+        binary_y = postprocessing(y2)
+        # print(binary_y)
+        E = cross_entropy_loss(y2, y_ans)
+        print(E)
+        \end{lstlisting}
+        ここまでに作成した関数を活用して課題2の処理を実行した.
+        なお, input\_layer2で取得したミニバッチのインデックスbatch\_indexによって正解のクラスbatch\_labelを受け取り, これをone-hot vector表記に変更したものをy\_ansとしてクロスエントロピー誤差の計算に活用した.
+
+\subsection*{実行結果}
+    実行の結果, クロスエントロピー誤差の6.912088284247902が標準出力に出力された.
+    コメントアウトを外すことで各段階でも正しく動作していることが確認できた.
+
+\subsection*{工夫点}
+    \begin{itemize}
+        \item この後の課題でも活用しやすくするために機能別で関数を実装した.
+        \item クロスエントロピー誤差を計算するcross\_entropy\_lossでfor文を使わずミニバッチのまま処理できるように記述した.
+    \end{itemize}
+\subsection*{問題点}
+    \begin{itemize}
+        \item 関数を細かく分けたことでバッチサイズを一箇所で管理できておらず, create\_batch(X)内のbatch\_sizeとは別でinput\_layer2(X)内でinput\_vectorを取得するためにバッチサイズである100をそのまま記述してしまっている.
+    \end{itemize}
+\end{document}
