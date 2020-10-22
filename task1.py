@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import mnist
 
 train_X = mnist.download_and_parse_mnist_file("train-images-idx3-ubyte.gz")
+# print(type(np.array(train_X[0])))
+# print(train_X.shape)
 train_Y = mnist.download_and_parse_mnist_file("train-labels-idx1-ubyte.gz")
 test_X = mnist.download_and_parse_mnist_file("t10k-images-idx3-ubyte.gz")
 test_Y = mnist.download_and_parse_mnist_file("t10k-labels-idx1-ubyte.gz")
@@ -22,14 +24,35 @@ def preprocessing(N, M, d):
     b = np.random.normal(0, 1/N, (1, M))
     return W, b
 
+def create_batch(X):
+    batch_size = 100
+    np.random.seed(seed=32)
+    batch_index = np.random.choice(len(X), batch_size)
+    # X_batch = X[batch_index]
+    # return X_batch
+    return batch_index
+
 def input_layer(X):
     i = int(input())
-    input_image = np.array(X[i])
+    input_image = X[i]
     image_size = input_image.size
     image_num = len(X)
     class_num = 10
     input_vector = input_image.reshape(1,image_size)
     return input_vector, image_size, i, class_num
+
+def input_layer2(X):
+    batch_index = create_batch(X)
+    input_images = X[batch_index]
+    image_size = input_images[0].size
+    image_num = len(X)
+    class_num = 10
+    input_vector = input_images.reshape(100,image_size)
+    return input_vector, image_size, i, class_num
+
+input_vec, image_size, i, class_sum = input_layer2(test_X)
+print('input', image_size, i, class_sum )
+
 
 def matrix_operation(W, X, b):
     return np.dot(X, W) + b
@@ -53,17 +76,20 @@ def postprocessing(y):
     return binary_y
 
 
-input_vec, image_size, i, class_sum = input_layer(test_X)
+
+
+
+# input_vec, image_size, i, class_sum = input_layer(test_X)
 # print('input', image_size, i, class_sum )
-W1, b1 = preprocessing(image_size, 30, image_size)
-y1 = matrix_operation(W1, input_vec, b1)
-# print('matrix', y1)
-y1 = sigmoid(y1)
-# print('sigmoid', y1)
-W2, b2 = preprocessing(30, class_sum, 30)
-a = matrix_operation(W2, y1, b2)
-# print('a', a)
-y2 = softmax(a)
-# print(y2)
-binary_y = postprocessing(y2)
-# print(binary_y)
+# W1, b1 = preprocessing(image_size, 30, image_size)
+# y1 = matrix_operation(W1, input_vec, b1)
+# # print('matrix', y1)
+# y1 = sigmoid(y1)
+# # print('sigmoid', y1)
+# W2, b2 = preprocessing(30, class_sum, 30)
+# a = matrix_operation(W2, y1, b2)
+# # print('a', a)
+# y2 = softmax(a)
+# # print(y2)
+# binary_y = postprocessing(y2)
+# # print(binary_y)
