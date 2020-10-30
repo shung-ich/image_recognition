@@ -17,11 +17,7 @@ test_Y = mnist.download_and_parse_mnist_file("t10k-labels-idx1-ubyte.gz")
 # print (train_Y[idx])
 # print(np.array(train_X[0]).reshape(1,784))
 
-# def preprocessing(N, M, d):
-#     np.random.seed(seed=32)
-#     W = np.random.normal(0, 1/N, (d, M))
-#     b = np.random.normal(0, 1/N, (1, M))
-#     return W, b
+
 class params:
     def __init__(self, M, d):
         np.random.seed(seed=32)
@@ -45,7 +41,6 @@ def load(i):
 def create_batch(X):
     batch_size = 100
     np.random.seed(seed=32)
-    # batch_index = np.random.choice(len(X), batch_size)
     batch_index = np.random.choice(len(X), (600, batch_size))
     return batch_index
 
@@ -58,7 +53,6 @@ def input_layer(X):
     input_vector = input_image.reshape(1,image_size)
     return input_vector, image_size, i, class_num
 
-# def input_layer2(X):
 def input_layer2(X, j):
     batch_index = create_batch(X)
     # input_images = X[batch_index] / 255
@@ -69,8 +63,6 @@ def input_layer2(X, j):
     input_vector = input_images.reshape(100,image_size)
     return input_vector, image_size, batch_index, class_num
 
-# def matrix_operation(W, X, b):
-#     return np.dot(X, W) + b
 class matrix_operation:
     def __init__(self, W, b):
         self.W = W
@@ -88,9 +80,6 @@ class matrix_operation:
         db = np.sum(back, axis=0)
         return dX, dW, db
 
-
-# def sigmoid(x):
-#     return (1 / (1 + np.exp(-1 * x)))
 class sigmoid:
     def __init__(self):
         self.y = None
@@ -103,23 +92,12 @@ class sigmoid:
         dt = back * (1 - self.y) * self.y
         return dt
 
-
-# def softmax(a):
-#     alpha = np.amax(a)
-#     # print('max', alpha)
-#     exp_a = np.exp(a - alpha)
-#     # print('e', exp_a)
-#     sum_exp = np.sum(exp_a)
-#     # print('sum', sum_exp)
-#     y = exp_a / sum_exp
-#     return y
 class softmax:
     def __init__(self, batch_size):
         self.y_pred = None
         self.batch_size = batch_size
 
     def forward(self, a):
-        # alpha = np.amax(a)
         alpha = np.tile(np.amax(a, axis=1), 10).reshape(10, self.batch_size).T
         # print('max', alpha)
         exp_a = np.exp(a - alpha)
@@ -133,7 +111,6 @@ class softmax:
         da = (self.y_pred - y_ans) / B
         return da
 
-
 def postprocessing(y):
     binary_y = np.where(y == np.amax(y, axis=1), 1, 0)
     # print(np.where(binary_y == 1)[1][0])
@@ -144,14 +121,12 @@ def cross_entropy_loss(y_pred, y_ans):
     E = 1 / B * np.sum((-1) * y_ans * np.log(y_pred))
     return E
 
-
 class neural_network():
     def __init__(self, batch_size, epoch, middle_layer, last):
         self.batch_size = batch_size
         self.epoch = epoch
         self.middle_layer = middle_layer
         self.last = last
-
 
     def learning(self):
         params1 = params(self.middle_layer, 784)
@@ -188,7 +163,6 @@ class neural_network():
                 dX1, dW1, db1 = mo1.backward(dt)
                 params1.update(dW1, db1)
                 params2.update(dW2, db2)
-                # print(E)
 
             print(np.sum(loss) / len(loss))
 
@@ -221,4 +195,3 @@ print('学習を開始します. ')
 nn.learning()
 print('テストを開始します. ')
 nn.testing()
-
