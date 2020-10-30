@@ -33,6 +33,15 @@ class params:
         self.W -= self.eta * dW
         self.b -= self.eta * db
 
+    def save(self, i):
+        np.save('./w{}'.format(i), self.W)
+        np.save('./b{}'.format(i), self.b)
+    
+def load(i):
+    W_loaded = np.load('./w{}.npy'.format(i))
+    b_loaded = np.load('./b{}.npy'.format(i))
+    return W_loaded, b_loaded
+
 def create_batch(X):
     batch_size = 100
     np.random.seed(seed=32)
@@ -41,8 +50,8 @@ def create_batch(X):
     return batch_index
 
 def input_layer(X):
-    i = int(input())
-    input_image = X[i]
+    i = int(input('参照する画像データのインデックスを入力してください. '))
+    input_image = X[i] / 255
     image_size = input_image.size
     image_num = len(X)
     class_num = 10
@@ -67,9 +76,6 @@ class matrix_operation:
         self.W = W
         self.b = b
         self.X = None
-        # self.dX = None
-        # self.dW = None
-        # self.db None
     
     def forward(self, X):
         self.X = X 
@@ -77,10 +83,6 @@ class matrix_operation:
         return y
 
     def backward(self, back):
-        # self.dX = np.dot(self.W.T, back)
-        # self.dW = np.dot(back, self.X.T)
-        # self.db = np.sum(back, axis=1)
-        # return self.dX, self.dW, self.db
         dX = np.dot(back, self.W.T)
         dW = np.dot(self.X.T, back)
         db = np.sum(back, axis=0)
@@ -92,15 +94,12 @@ class matrix_operation:
 class sigmoid:
     def __init__(self):
         self.y = None
-        # self.dt = None
     
     def forward(self, t):
         self.y = (1 / (1 + np.exp(-1 * t)))
         return self.y
 
     def backward(self, back):
-        # self.dt = back * (1 - self.y) * self.y
-        # return self.dt
         dt = back * (1 - self.y) * self.y
         return dt
 
@@ -115,16 +114,17 @@ class sigmoid:
 #     y = exp_a / sum_exp
 #     return y
 class softmax:
-    def __init__(self):
+    def __init__(self, batch_size):
         self.y_pred = None
+        self.batch_size = batch_size
 
     def forward(self, a):
         # alpha = np.amax(a)
-        alpha = np.tile(np.amax(a, axis=1), 10).reshape(10, 100).T
+        alpha = np.tile(np.amax(a, axis=1), 10).reshape(10, self.batch_size).T
         # print('max', alpha)
         exp_a = np.exp(a - alpha)
         # print('e', exp_a)
-        sum_exp = np.tile(np.sum(exp_a, axis=1), 10).reshape(10, 100).T
+        sum_exp = np.tile(np.sum(exp_a, axis=1), 10).reshape(10, self.batch_size).T
         # print('sum', sum_exp)
         self.y_pred = exp_a / sum_exp
         return self.y_pred
@@ -135,7 +135,7 @@ class softmax:
 
 
 def postprocessing(y):
-    binary_y = np.where(y == np.amax(y), 1, 0)
+    binary_y = np.where(y == np.amax(y, axis=1), 1, 0)
     # print(np.where(binary_y == 1)[1][0])
     return binary_y
 
@@ -145,74 +145,80 @@ def cross_entropy_loss(y_pred, y_ans):
     return E
 
 
-# input_vec, image_size, i, class_sum = input_layer(test_X)
-# print('input', image_size, i, class_sum )
+class neural_network():
+    def __init__(self, batch_size, epoch, middle_layer, last):
+        self.batch_size = batch_size
+        self.epoch = epoch
+        self.middle_layer = middle_layer
+        self.last = last
 
-# input_vec, image_size, batch_index, class_sum = input_layer2(test_X)
-# batch_label = train_Y[batch_index]
-# y_ans = np.identity(10)[batch_label]
-# # print(batch_label)
-# # print('input', image_size, batch_index, class_sum)
-# W1, b1 = preprocessing(image_size, 30, image_size)
-# y1 = matrix_operation(W1, input_vec, b1)
-# # print('matrix', y1)
-# y1 = sigmoid(y1)
-# # print('sigmoid', y1)
-# W2, b2 = preprocessing(30, class_sum, 30)
-# a = matrix_operation(W2, y1, b2)
-# # print('a', a)
-# y2 = softmax(a)
-# # print(y2)
-# binary_y = postprocessing(y2)
-# # print(binary_y)
-# E = cross_entropy_loss(y2, y_ans)
-# print(E)
 
-# input_vec, image_size, batch_index, class_sum = input_layer2(train_X)
-# batch_label = train_Y[batch_index]
-# y_ans = np.identity(10)[batch_label]
+    def learning(self):
+        params1 = params(self.middle_layer, 784)
+        params2 = params(self.last, self.middle_layer)
+        for i in range(self.epoch):
+            loss = []
+            for j in range(int(60000 / self.batch_size)):
+                input_vec, image_size, batch_index, class_sum = input_layer2(train_X, j)
+                batch_label = train_Y[batch_index[j]]
+                y_ans = np.identity(10)[batch_label]
 
-# print(batch_label)
-# print('input', image_size, batch_index, class_sum)
+                W1, b1 = params1.W, params1.b
+                mo1 = matrix_operation(W1, b1)
+                t = mo1.forward(input_vec)
+                # print('matrix', t)
+                sig = sigmoid()
+                y1 = sig.forward(t)
+                # print('sigmoid', y1)
+                W2, b2 = params2.W, params2.b
+                mo2 = matrix_operation(W2, b2)
+                a = mo2.forward(y1)
+                # print('a', a)
+                soft = softmax(self.batch_size)
+                y2 = soft.forward(a)
+                # print(y2)
+                # binary_y = postprocessing(y2)
+                # print(binary_y)
+                E = cross_entropy_loss(y2, y_ans)
+                loss.append(E)
 
-# params1 = params(30, image_size)
-# params2 = params(class_sum, 30)
-params1 = params(30, 784)
-params2 = params(10, 30)
-for i in range(100):
-    loss = []
-    for j in range(int(600)):
-        input_vec, image_size, batch_index, class_sum = input_layer2(train_X, j)
-        batch_label = train_Y[batch_index[j]]
-        y_ans = np.identity(10)[batch_label]
+                da = soft.backward(y_ans, self.batch_size)
+                dX2, dW2, db2 = mo2.backward(da)
+                dt = sig.backward(dX2)
+                dX1, dW1, db1 = mo1.backward(dt)
+                params1.update(dW1, db1)
+                params2.update(dW2, db2)
+                # print(E)
 
-        W1, b1 = params1.W, params1.b
+            print(np.sum(loss) / len(loss))
+
+        params1.save(1)
+        params2.save(2)
+    
+    def testing(self):
+        input_vector, image_size, i, class_num = input_layer(test_X)
+        # y_ans = np.identity(10)[test_Y[i]]
+        W1, b1 = load(1)
         mo1 = matrix_operation(W1, b1)
-        t = mo1.forward(input_vec)
+        t = mo1.forward(input_vector)
         # print('matrix', y1)
         sig = sigmoid()
         y1 = sig.forward(t)
         # print('sigmoid', y1)
-        W2, b2 = params2.W, params2.b
+        W2, b2 = load(2)
         mo2 = matrix_operation(W2, b2)
         a = mo2.forward(y1)
         # print('a', a)
-        soft = softmax()
+        soft = softmax(1)
         y2 = soft.forward(a)
         # print(y2)
         binary_y = postprocessing(y2)
-        # print(binary_y)
-        E = cross_entropy_loss(y2, y_ans)
-        loss.append(E)
+        print(np.where(binary_y == 1)[1][0], test_Y[i])
 
-        da = soft.backward(y_ans, 100)
-        dX2, dW2, db2 = mo2.backward(da)
-        dt = sig.backward(dX2)
-        dX1, dW1, db1 = mo1.backward(dt)
-        params1.update(dW1, db1)
-        params2.update(dW2, db2)
-        print(E)
 
-    # print(np.sum(E) / 600)
-
+nn = neural_network(100, 100, 50, 10)
+print('学習を開始します. ')
+nn.learning()
+print('テストを開始します. ')
+nn.testing()
 

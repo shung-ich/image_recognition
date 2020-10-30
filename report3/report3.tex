@@ -1,0 +1,235 @@
+\documentclass[a4j, titlepage]{jarticle}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{ascmac}
+
+\usepackage{listings,jlisting}
+
+\lstset{%
+  language={C},
+  basicstyle={\small},%
+  identifierstyle={\small},%
+  commentstyle={\small\itshape},%
+  keywordstyle={\small\bfseries},%
+  ndkeywordstyle={\small},%
+  stringstyle={\small\ttfamily},
+  frame={tb},
+  breaklines=true,
+  columns=[l]{fullflexible},%
+  numbers=left,%
+  xrightmargin=0zw,%
+  xleftmargin=3zw,%
+  numberstyle={\scriptsize},%
+  stepnumber=1,
+  numbersep=1zw,%
+  lineskip=-0.5ex%
+}
+
+\begin{document}
+
+\title{計算機科学実験及演習4 画像認識　\\ \bf レポート3}
+% ↓ここに自分の氏名を記入
+\author{高橋駿一　2018年度入学 1029-30-3949}
+\西暦
+\date{提出日: \today} % コンパイル時の日付が自動で挿入される
+\maketitle
+
+\clearpage
+
+\section*{課題3}
+\subsection*{課題内容}
+[課題2]のコードをベースに, 3層ニューラルネットワークのパラメータを学習するプログラムを作成した. なお, 本レポートは[課題2]からの差分について記述した.
+
+\subsection*{作成したプログラムの説明}
+誤差逆伝播法を実装したため, 課題2の時点と比較して関数の数が大幅に増加したため, 既存の関数を機能別でクラスにまとめることで可読性と再利用性を高めた.
+    \subsubsection*{}
+        \begin{lstlisting}[caption=パラメータの設定, 更新, 保存,label=fuga]
+        class params:
+            def __init__(self, M, d):
+                np.random.seed(seed=32)
+                self.W = np.random.normal(0, 1/d, (d, M))
+                self.b = np.random.normal(0, 1/d, (1, M))
+                self.eta = 0.01
+
+            def update(self, dW, db):
+                self.W -= self.eta * dW
+                self.b -= self.eta * db
+
+            def save(self, i):
+                np.save('./w{}'.format(i), self.W)
+                np.save('./b{}'.format(i), self.b)
+        \end{lstlisting}
+        パラメータに関するクラスである.
+        \_\_init\_\_()でインスタンス化を行い, 重みWと切片ベクトルbの初期化を行う. なお, 学習率etaは0.01とした.
+        update()でW, bの更新を行い, save()でこれらを.npyファイルとして保存する.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=ファイルに保存したパラメータの読み込み,label=fuga]
+        def load(i):
+            W_loaded = np.load('./w{}.npy'.format(i))
+            b_loaded = np.load('./b{}.npy'.format(i))
+            return W_loaded, b_loaded
+        \end{lstlisting}
+        .npyファイルに保存したパラメータを読み込む関数である.
+        引数iで読み込むファイルを制御している.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=線形和の計算とその逆伝播,label=fuga]
+        class matrix_operation:
+            def __init__(self, W, b):
+                self.W = W
+                self.b = b
+                self.X = None
+
+            def forward(self, X):
+                self.X = X
+                y = np.dot(X, self.W) + self.b
+                return y
+
+            def backward(self, back):
+                dX = np.dot(back, self.W.T)
+                dW = np.dot(self.X.T, back)
+                db = np.sum(back, axis=0)
+                return dX, dW, db
+        \end{lstlisting}
+        線形和に関するクラスである.
+        forward()で線形和の計算を行い, backward()でその逆伝播の計算を行う.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=シグモイド関数の計算とその逆伝播,label=fuga]
+        class sigmoid:
+            def __init__(self):
+                self.y = None
+
+            def forward(self, t):
+                self.y = (1 / (1 + np.exp(-1 * t)))
+                return self.y
+
+            def backward(self, back):
+                dt = back * (1 - self.y) * self.y
+                return dt
+        \end{lstlisting}
+        シグモイド関数についてのクラスである.
+        forward()でシグモイド関数の適用を行い, backward()でその逆伝播の計算を行う.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=ソフトマックス関数の計算とその逆伝播,label=fuga]
+        class softmax:
+            def __init__(self, batch_size):
+                self.y_pred = None
+                self.batch_size = batch_size
+
+            def forward(self, a):
+                alpha = np.tile(np.amax(a, axis=1), 10).reshape(10, self.batch_size).T
+                # print('max', alpha)
+                exp_a = np.exp(a - alpha)
+                # print('e', exp_a)
+                sum_exp = np.tile(np.sum(exp_a, axis=1), 10).reshape(10, self.batch_size).T
+                # print('sum', sum_exp)
+                self.y_pred = exp_a / sum_exp
+                return self.y_pred
+
+            def backward(self, y_ans, B):
+                da = (self.y_pred - y_ans) / B
+                return da
+        \end{lstlisting}
+        ソフトマックス関数についてのクラスである.
+        forward()でソフトマックス関数の適用を行い, backward()でその逆伝播の計算を行う.
+        なお, 課題2のレポートではalphaを計算する際にaxisを指定していなかったため, alphaが行列aの成分の中で最も大きい値を取っていたが, 本来は上記のコードのように行列aの各行の中で最も大きい値を取り, それを行列aと同じサイズに拡張した行列となる.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=ニューラルネットワーク,label=fuga]
+        class neural_network():
+            def __init__(self, batch_size, epoch, middle_layer, last):
+                self.batch_size = batch_size
+                self.epoch = epoch
+                self.middle_layer = middle_layer
+                self.last = last
+
+            def learning(self):
+                params1 = params(self.middle_layer, 784)
+                params2 = params(self.last, self.middle_layer)
+                for i in range(self.epoch):
+                    loss = []
+                    for j in range(int(60000 / self.batch_size)):
+                        input_vec, image_size, batch_index, class_sum = input_layer2(train_X, j)
+                        batch_label = train_Y[batch_index[j]]
+                        y_ans = np.identity(10)[batch_label]
+
+                        W1, b1 = params1.W, params1.b
+                        mo1 = matrix_operation(W1, b1)
+                        t = mo1.forward(input_vec)
+                        # print('matrix', t)
+                        sig = sigmoid()
+                        y1 = sig.forward(t)
+                        # print('sigmoid', y1)
+                        W2, b2 = params2.W, params2.b
+                        mo2 = matrix_operation(W2, b2)
+                        a = mo2.forward(y1)
+                        # print('a', a)
+                        soft = softmax(self.batch_size)
+                        y2 = soft.forward(a)
+                        # print(y2)
+                        # binary_y = postprocessing(y2)
+                        # print(binary_y)
+                        E = cross_entropy_loss(y2, y_ans)
+                        loss.append(E)
+
+                        da = soft.backward(y_ans, self.batch_size)
+                        dX2, dW2, db2 = mo2.backward(da)
+                        dt = sig.backward(dX2)
+                        dX1, dW1, db1 = mo1.backward(dt)
+                        params1.update(dW1, db1)
+                        params2.update(dW2, db2)
+
+                    print(np.sum(loss) / len(loss))
+
+                params1.save(1)
+                params2.save(2)
+
+            def testing(self):
+                input_vector, image_size, i, class_num = input_layer(test_X)
+                # y_ans = np.identity(10)[test_Y[i]]
+                W1, b1 = load(1)
+                mo1 = matrix_operation(W1, b1)
+                t = mo1.forward(input_vector)
+                # print('matrix', y1)
+                sig = sigmoid()
+                y1 = sig.forward(t)
+                # print('sigmoid', y1)
+                W2, b2 = load(2)
+                mo2 = matrix_operation(W2, b2)
+                a = mo2.forward(y1)
+                # print('a', a)
+                soft = softmax(1)
+                y2 = soft.forward(a)
+                # print(y2)
+                binary_y = postprocessing(y2)
+                print(np.where(binary_y == 1)[1][0], test_Y[i])
+        \end{lstlisting}
+        ここまでに作成したクラスや関数を用いてニューラルネットワークを構築する関数である.
+        \_\_init\_\_()でインスタンス化を行い, バッチサイズbatch\_size, エポックepoch, 中間層のノード数middle\_layer, 出力層のノード数(クラス数)lastを指定する.
+        learning()では1エポックを60000/batch\_size回の繰り返しとし, パラメータの更新を実行する. testing()では保存された.npyファイルからW1, W2, b1, b2を読み込み, これらのパラメータを使ってテストデータの画像認識を行い, ニューラルネットワークの計算結果と正解のラベルを標準出力に出力する.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=課題3の実行,label=fuga]
+        nn = neural_network(100, 100, 50, 10)
+        print('学習を開始します. ')
+        nn.learning()
+        print('テストを開始します. ')
+        nn.testing()
+        \end{lstlisting}
+        neural\_networkクラスをインスタンス化し, 課題3を実行する.
+
+\subsection*{実行結果}
+    実行の結果, クロスエントロピー誤差が2.296782644875204から0.2190637709925514に減少し,重みW1, W2と切片ベクトルb1, b2のファイルが作成された. さらに, これらのファイルは正常に読み込まれた.
+
+\subsection*{工夫点}
+    \begin{itemize}
+        \item この後の課題でも活用しやすくするために関数を機能別でクラスに集約し, 実装した.
+        \item softmax関数で行列に関する演算を実装する際にfor文を使わず, numpyの機能を活用することで計算時間を抑えた.
+    \end{itemize}
+\subsection*{問題点}
+    \begin{itemize}
+        \item 課題2の時と比べるとクラスを活用することで改善されたことではあるが, バッチサイズを一箇所で管理できておらず, create\_batch(X)内のbatch\_sizeとは別でinput\_layer2(X)内でinput\_vectorを取得するためにバッチサイズである100をそのまま記述してしまっている. また, neural\_networkクラスでも改めて指定している. 
+    \end{itemize}
+\end{document}
