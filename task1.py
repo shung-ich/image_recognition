@@ -105,23 +105,63 @@ class ReLU():
         return dt
 
 class Dropout():
-    def __init__(self, rho, mask):
+    def __init__(self, rho):
         self.rho = rho
         self.mask = None
 
     def forward(self, t, train_flag=1):
         if train_flag == 1:
-            self.mask = np.random.rand(t.shape) > self.rho
+            self.mask = np.random.rand(*t.shape) > self.rho
             a = t * self.mask
             return a
         else:
             a = t * (1 - self.rho)
             return  a
 
-    def backward(self, back)
+    def backward(self, back):
         dt = back * self.mask
         return dt
 
+class Batch_Normalization():
+    def __init__(self):
+        self.batch_size = None
+        self.gamma = 1
+        self.beta = 0
+        self.x = None
+        self.mean = None
+        self.var = None
+        self.normalized_x = None
+        self.epsilon = 1e-7
+        self.mean_list = []
+        self.var_list = []
+
+    def forward(self, x, train_flag=1):
+        self.x = x
+        if train_flag == 1:
+            self.batch_size = x.shape[0]
+            # mean = np.sum(x, axis=0) / self.batch_size
+            self.mean = np.mean(x, axis=0)
+            self.mean_list = np.append(self.mean_list, self.mean, axis=0)
+            self.var = np.var(x, axis=0)
+            self.var_list = np.append(self.var_list, self.var, axis=0)
+            # print('x: ',  x.shape)
+            self.normalized_x = (x - self.mean) / np.sqrt(self.var + self.epsilon)
+            y = self.gamma * self.normalized_x + self.beta
+        else:
+            y = self.gamma / np.sqrt(np.mean(self.var_list, axis=0) + self.epsilon) * x + \
+                (self.beta - self.gamma * np.mean(self.mean_list, axis=0) / np.sqrt(np.mean(self.var_list, axis=0) + self.epsilon))
+        return y
+
+    def backward(self, back):
+        dn_x = back * self.gamma
+        dvar = np.sum(dn_x * (self.x - self.mean) * (-1 / 2) * (self.var + self.epsilon) ** (-3 / 2), axis=0)
+        dmean = np.sum(dn_x * (-1) / np.sqrt(self.var + self.epsilon), axis=0) + dvar * np.sum(-2 * (self.x - self.mean), axis=0) / self.batch_size
+        dx = dn_x / np.sqrt(self.var + self.epsilon) + dvar * 2 * (self.x - self.mean) / self.batch_size + dmean / self.batch_size
+        dgamma = np.sum(back * self.normalized_x, axis=0)
+        dbeta = np.sum(back, axis=0)
+        self.gamma -= 0.01 * dgamma
+        self.beta -= 0.01 * dbeta
+        return dx
 
 class softmax:
     def __init__(self, batch_size):
@@ -173,9 +213,19 @@ class neural_network():
                 mo1 = matrix_operation(W1, b1)
                 t = mo1.forward(input_vec)
                 # print('matrix', t)
-                sig = sigmoid()
-                y1 = sig.forward(t)
+
+                bn = Batch_Normalization()
+                y_bn = bn.forward(t)
+
+                # sig = sigmoid()
+                # y1 = sig.forward(t)
+                re = ReLU()
+                y_re = re.forward(y_bn)
                 # print('sigmoid', y1)
+
+                dr = Dropout(0.2)
+                y1 = dr.forward(y_re)
+
                 W2, b2 = params2.W, params2.b
                 mo2 = matrix_operation(W2, b2)
                 a = mo2.forward(y1)
@@ -190,7 +240,14 @@ class neural_network():
 
                 da = soft.backward(y_ans, self.batch_size)
                 dX2, dW2, db2 = mo2.backward(da)
-                dt = sig.backward(dX2)
+
+                dt_dr = dr.backward(dX2)
+
+                # dt = sig.backward(dX2)
+                dt_re = re.backward(dt_dr)
+
+                dt = bn.backward(dt_re)
+                
                 dX1, dW1, db1 = mo1.backward(dt)
                 params1.update(dW1, db1)
                 params2.update(dW2, db2)
@@ -221,7 +278,7 @@ class neural_network():
         print(np.where(binary_y == 1)[1][0], test_Y[i])
 
 
-nn = neural_network(100, 100, 50, 10)
+nn = neural_network(100, 10, 50, 10)
 print('学習を開始します. ')
 nn.learning()
 print('テストを開始します. ')
