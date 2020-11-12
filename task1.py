@@ -24,15 +24,77 @@ class params:
         self.W = np.random.normal(0, 1/d, (d, M))
         self.b = np.random.normal(0, 1/d, (1, M))
         self.eta = 0.01
+        # self.op1 = optimize('default')
+        # self.op2 = optimize('default')
+        approach = 'Adam'
+        self.op1 = optimize(approach)
+        self.op2 = optimize(approach)
 
     def update(self, dW, db):
-        self.W -= self.eta * dW
-        self.b -= self.eta * db
+        # self.W -= self.eta * dW
+        # self.b -= self.eta * db
+        self.W += self.op1.update(dW)
+        self.b += self.op2.update(db)
 
     def save(self, i):
         np.save('./w{}'.format(i), self.W)
         np.save('./b{}'.format(i), self.b)
-    
+
+class optimize:    
+    def __init__(self, approach):
+        self.approach = approach
+        self.diff = 0
+        if approach == 'default':
+            self.eta = 0.01
+        elif approach == 'SGD':
+            self.eta = 0.01
+            self.alpha = 0.9
+        elif approach == 'AdaGrad':
+            self.h = 1e-8
+            self.eta = 0.001
+        elif approach == 'RMSProp':
+            self.h = 0
+            self.eta = 0.001
+            self.rho = 0.9
+            self.epsilon = 1e-8
+        elif approach == 'AdaDelta':
+            self.h = 0
+            self.s = 0
+            self.rho = 0.95
+            self.epsilon = 1e-6
+        elif approach == 'Adam':
+            self.t = 0
+            self.m = 0
+            self.v = 0
+            self.alpha = 0.001
+            self.beta1 = 0.9
+            self.beta2 = 0.999
+            self.epsilon = 1e-8
+
+    def update(self, d_):
+        if self.approach == 'default':
+            self.diff = (-1) * self.eta * d_
+        elif self.approach == 'SGD':
+            self.diff = self.alpha * self.diff - self.eta * d_
+        elif self.approach == 'AdaGrad':
+            self.h = self.h + d_ * d_
+            self.diff = (-1) * self.eta / np.sqrt(self.h) * d_
+        elif self.approach == 'RMSProp':
+            self.h = self.rho * self.h + (1 - self.rho) * d_ * d_
+            self.diff = (-1) * self.eta / (np.sqrt(self.h) + self.epsilon) * d_
+        elif self.approach == 'AdaDelta':
+            self.h = self.rho * self.h + (1 - self.rho) * d_ * d_
+            self.diff = (-1) * np.sqrt(self.s + self.epsilon) / np.sqrt(self.h + self.epsilon) * d_
+            self.s = self.rho * self.s + (1 - self.rho) * self.diff * self.diff
+        elif self.approach == 'Adam':
+            self.t = self.t + 1
+            self.m = self.beta1 * self.m + (1 - self.beta1) * d_
+            self.v = self.beta2 * self.v + (1 - self.beta2) * d_ * d_
+            m_hat = self.m / (1 - self.beta1 ** self.t)
+            v_hat = self.v / (1 - self.beta2 ** self.t)
+            self.diff = (-1) * self.alpha * m_hat / (np.sqrt(v_hat) + self.epsilon)
+        return self.diff
+
 def load(i):
     W_loaded = np.load('./w{}.npy'.format(i))
     b_loaded = np.load('./b{}.npy'.format(i))
@@ -62,6 +124,14 @@ def input_layer2(X, j):
     class_num = 10
     input_vector = input_images.reshape(100,image_size)
     return input_vector, image_size, batch_index, class_num
+
+def input_layer_test(X, i):
+    input_image = X[i] / 255
+    image_size = input_image.size
+    image_num = len(X)
+    class_num = 10
+    input_vector = input_image.reshape(1,image_size)
+    return input_vector, image_size, i, class_num
 
 class matrix_operation:
     def __init__(self, W, b):
@@ -123,6 +193,9 @@ class Dropout():
         return dt
 
 class Batch_Normalization():
+    mean_list = []
+    var_list = []
+
     def __init__(self):
         self.batch_size = None
         self.gamma = 1
@@ -132,8 +205,8 @@ class Batch_Normalization():
         self.var = None
         self.normalized_x = None
         self.epsilon = 1e-7
-        self.mean_list = []
-        self.var_list = []
+        self.op1 = optimize('Adam')
+        self.op2 = optimize('Adam')
 
     def forward(self, x, train_flag=1):
         self.x = x
@@ -141,9 +214,9 @@ class Batch_Normalization():
             self.batch_size = x.shape[0]
             # mean = np.sum(x, axis=0) / self.batch_size
             self.mean = np.mean(x, axis=0)
-            self.mean_list = np.append(self.mean_list, self.mean, axis=0)
+            Batch_Normalization.mean_list = np.append(Batch_Normalization.mean_list, self.mean, axis=0)
             self.var = np.var(x, axis=0)
-            self.var_list = np.append(self.var_list, self.var, axis=0)
+            Batch_Normalization.var_list = np.append(Batch_Normalization.var_list, self.var, axis=0)
             # print('x: ',  x.shape)
             self.normalized_x = (x - self.mean) / np.sqrt(self.var + self.epsilon)
             y = self.gamma * self.normalized_x + self.beta
@@ -159,8 +232,8 @@ class Batch_Normalization():
         dx = dn_x / np.sqrt(self.var + self.epsilon) + dvar * 2 * (self.x - self.mean) / self.batch_size + dmean / self.batch_size
         dgamma = np.sum(back * self.normalized_x, axis=0)
         dbeta = np.sum(back, axis=0)
-        self.gamma -= 0.01 * dgamma
-        self.beta -= 0.01 * dbeta
+        self.gamma += self.op1.update(dgamma)
+        self.beta += self.op2.update(dbeta)
         return dx
 
 class softmax:
@@ -258,27 +331,44 @@ class neural_network():
         params2.save(2)
     
     def testing(self):
-        input_vector, image_size, i, class_num = input_layer(test_X)
-        # y_ans = np.identity(10)[test_Y[i]]
-        W1, b1 = load(1)
-        mo1 = matrix_operation(W1, b1)
-        t = mo1.forward(input_vector)
-        # print('matrix', y1)
-        sig = sigmoid()
-        y1 = sig.forward(t)
-        # print('sigmoid', y1)
-        W2, b2 = load(2)
-        mo2 = matrix_operation(W2, b2)
-        a = mo2.forward(y1)
-        # print('a', a)
-        soft = softmax(1)
-        y2 = soft.forward(a)
-        # print(y2)
-        binary_y = postprocessing(y2)
-        print(np.where(binary_y == 1)[1][0], test_Y[i])
+        # input_vector, image_size, i, class_num = input_layer(test_X)
+        ans = []
+        for k in range(test_Y.shape[0]):
+            input_vector, image_size, i, class_num = input_layer_test(test_X, k)
+            # y_ans = np.identity(10)[test_Y[i]]
+            W1, b1 = load(1)
+            mo1 = matrix_operation(W1, b1)
+            t = mo1.forward(input_vector)
+
+            bn = Batch_Normalization()
+            y_bn = bn.forward(t, 0)
+
+            # print('matrix', y1)
+            # sig = sigmoid()
+            # y1 = sig.forward(t)
+            re = ReLU()
+            y_re = re.forward(y_bn)
+            # print('sigmoid', y1)
+
+            dr = Dropout(0.2)
+            y1 = dr.forward(y_re, 0)
+
+            W2, b2 = load(2)
+            mo2 = matrix_operation(W2, b2)
+            a = mo2.forward(y1)
+            # print('a', a)
+
+            soft = softmax(1)
+            y2 = soft.forward(a)
+            # print(y2)
+            binary_y = postprocessing(y2)
+            # print(np.where(binary_y == 1)[1][0], test_Y[i])
+            eq = 1 if np.where(binary_y == 1)[1][0] == test_Y[i] else 0
+            ans.append(eq)
+        print(np.mean(ans))
 
 
-nn = neural_network(100, 10, 50, 10)
+nn = neural_network(100, 5, 50, 10)
 print('学習を開始します. ')
 nn.learning()
 print('テストを開始します. ')
