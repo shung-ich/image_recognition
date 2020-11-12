@@ -92,6 +92,37 @@ class sigmoid:
         dt = back * (1 - self.y) * self.y
         return dt
 
+class ReLU():
+    def __init__(self):
+        self.a = None
+
+        # self.a = t if t > 0 else 0
+        self.a = np.where(t > 0, t, 0)
+        return self.a
+
+    def backward(self, back):
+        dt = back * np.where(self.a > 0, 1, 0)
+        return dt
+
+class Dropout():
+    def __init__(self, rho, mask):
+        self.rho = rho
+        self.mask = None
+
+    def forward(self, t, train_flag=1):
+        if train_flag == 1:
+            self.mask = np.random.rand(t.shape) > self.rho
+            a = t * self.mask
+            return a
+        else:
+            a = t * (1 - self.rho)
+            return  a
+
+    def backward(self, back)
+        dt = back * self.mask
+        return dt
+
+
 class softmax:
     def __init__(self, batch_size):
         self.y_pred = None
