@@ -96,7 +96,7 @@ class ReLU():
     def __init__(self):
         self.a = None
 
-        # self.a = t if t > 0 else 0
+    def forward(self, t):
         self.a = np.where(t > 0, t, 0)
         return self.a
 
