@@ -212,11 +212,8 @@ class Batch_Normalization():
         self.x = x
         if train_flag == 1:
             self.batch_size = x.shape[0]
-            # mean = np.sum(x, axis=0) / self.batch_size
             self.mean = np.mean(x, axis=0)
-            Batch_Normalization.mean_list = np.append(Batch_Normalization.mean_list, self.mean, axis=0)
             self.var = np.var(x, axis=0)
-            Batch_Normalization.var_list = np.append(Batch_Normalization.var_list, self.var, axis=0)
             # print('x: ',  x.shape)
             self.normalized_x = (x - self.mean) / np.sqrt(self.var + self.epsilon)
             y = self.gamma * self.normalized_x + self.beta
@@ -289,6 +286,7 @@ class neural_network():
 
                 bn = Batch_Normalization()
                 y_bn = bn.forward(t)
+                # y_bn = t
 
                 # sig = sigmoid()
                 # y1 = sig.forward(t)
@@ -320,11 +318,14 @@ class neural_network():
                 dt_re = re.backward(dt_dr)
 
                 dt = bn.backward(dt_re)
+                # dt = dt_re
                 
                 dX1, dW1, db1 = mo1.backward(dt)
                 params1.update(dW1, db1)
                 params2.update(dW2, db2)
-
+            Batch_Normalization.mean_list = np.append(Batch_Normalization.mean_list, bn.mean, axis=0)
+            Batch_Normalization.var_list = np.append(Batch_Normalization.var_list, bn.var, axis=0)
+            # Batch_Normalization.var_list.append(bn.var)
             print(np.sum(loss) / len(loss))
 
         params1.save(1)
@@ -333,6 +334,9 @@ class neural_network():
     def testing(self):
         # input_vector, image_size, i, class_num = input_layer(test_X)
         ans = []
+        Batch_Normalization.mean_list = Batch_Normalization.mean_list.reshape([self.epoch, self.middle_layer])
+        Batch_Normalization.var_list = Batch_Normalization.var_list.reshape([self.epoch, self.middle_layer])
+        # print(Batch_Normalization.mean_list.shape)
         for k in range(test_Y.shape[0]):
             input_vector, image_size, i, class_num = input_layer_test(test_X, k)
             # y_ans = np.identity(10)[test_Y[i]]
@@ -342,6 +346,7 @@ class neural_network():
 
             bn = Batch_Normalization()
             y_bn = bn.forward(t, 0)
+            # y_bn = t
 
             # print('matrix', y1)
             # sig = sigmoid()
@@ -368,7 +373,7 @@ class neural_network():
         print(np.mean(ans))
 
 
-nn = neural_network(100, 5, 50, 10)
+nn = neural_network(100, 20, 50, 10)
 print('学習を開始します. ')
 nn.learning()
 print('テストを開始します. ')
