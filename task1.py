@@ -24,15 +24,11 @@ class params:
         self.W = np.random.normal(0, 1/d, (d, M))
         self.b = np.random.normal(0, 1/d, (1, M))
         self.eta = 0.01
-        # self.op1 = optimize('default')
-        # self.op2 = optimize('default')
         approach = 'Adam'
         self.op1 = optimize(approach)
         self.op2 = optimize(approach)
 
     def update(self, dW, db):
-        # self.W -= self.eta * dW
-        # self.b -= self.eta * db
         self.W += self.op1.update(dW)
         self.b += self.op2.update(db)
 
@@ -106,20 +102,19 @@ def create_batch(X):
     batch_index = np.random.choice(len(X), (600, batch_size))
     return batch_index
 
-def input_layer(X):
-    i = int(input('参照する画像データのインデックスを入力してください. '))
-    input_image = X[i] / 255
-    image_size = input_image.size
-    image_num = len(X)
-    class_num = 10
-    input_vector = input_image.reshape(1,image_size)
-    return input_vector, image_size, i, class_num
+#  一枚の画像データを取り出すための関数
+# def input_layer(X):
+#     i = int(input('参照する画像データのインデックスを入力してください. '))
+#     input_image = X[i] / 255
+#     image_size = input_image.size
+#     image_num = len(X)
+#     class_num = 10
+#     input_vector = input_image.reshape(1,image_size)
+#     return input_vector, image_size, i, class_num
 
-def input_layer2(X, j):
+def input_layer_train(X, j):
     batch_index = create_batch(X)
-    # input_images = X[batch_index] / 255
     input_images = X[batch_index[j]] / 255
-    # image_size = input_images[0].size
     image_size = 784    
     class_num = 10
     input_vector = input_images.reshape(100,image_size)
@@ -218,8 +213,8 @@ class Batch_Normalization():
             self.normalized_x = (x - self.mean) / np.sqrt(self.var + self.epsilon)
             y = self.gamma * self.normalized_x + self.beta
         else:
-            y = self.gamma / np.sqrt(np.mean(self.var_list, axis=0) + self.epsilon) * x + \
-                (self.beta - self.gamma * np.mean(self.mean_list, axis=0) / np.sqrt(np.mean(self.var_list, axis=0) + self.epsilon))
+            y = self.gamma / np.sqrt(np.mean(Batch_Normalization.var_list, axis=0) + self.epsilon) * x + \
+                (self.beta - self.gamma * np.mean(Batch_Normalization.mean_list, axis=0) / np.sqrt(np.mean(Batch_Normalization.var_list, axis=0) + self.epsilon))
         return y
 
     def backward(self, back):
@@ -275,7 +270,7 @@ class neural_network():
         for i in range(self.epoch):
             loss = []
             for j in range(int(60000 / self.batch_size)):
-                input_vec, image_size, batch_index, class_sum = input_layer2(train_X, j)
+                input_vec, image_size, batch_index, class_sum = input_layer_train(train_X, j)
                 batch_label = train_Y[batch_index[j]]
                 y_ans = np.identity(10)[batch_label]
 

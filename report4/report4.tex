@@ -1,0 +1,406 @@
+\documentclass[a4j, titlepage]{jarticle}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{ascmac}
+
+\usepackage{listings,jlisting}
+
+\lstset{%
+  language={C},
+  basicstyle={\small},%
+  identifierstyle={\small},%
+  commentstyle={\small\itshape},%
+  keywordstyle={\small\bfseries},%
+  ndkeywordstyle={\small},%
+  stringstyle={\small\ttfamily},
+  frame={tb},
+  breaklines=true,
+  columns=[l]{fullflexible},%
+  numbers=left,%
+  xrightmargin=0zw,%
+  xleftmargin=3zw,%
+  numberstyle={\scriptsize},%
+  stepnumber=1,
+  numbersep=1zw,%
+  lineskip=-0.5ex%
+}
+
+\begin{document}
+
+\title{計算機科学実験及演習4 画像認識　\\ \bf レポート4}
+% ↓ここに自分の氏名を記入
+\author{高橋駿一　2018年度入学 1029-30-3949}
+\西暦
+\date{提出日: \today} % コンパイル時の日付が自動で挿入される
+\maketitle
+
+\clearpage
+
+\section*{課題4}
+\subsection*{課題内容}
+MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワークを用いて, 0～9の値のうち1つを出力するプログラムを作成した.
+
+\subsection*{作成したプログラムの説明}
+誤差逆伝播法を実装したため, 課題2の時点と比較して関数の数が大幅に増加したため, 既存の関数を機能別でクラスにまとめることで可読性と再利用性を高めた.
+    \subsubsection{paramsクラス}
+        \begin{lstlisting}[caption=パラメータW, bの初期化, 更新, 保存 ,label=fuga]
+        class params:
+            def __init__(self, M, d):
+                np.random.seed(seed=32)
+                self.W = np.random.normal(0, 1/d, (d, M))
+                self.b = np.random.normal(0, 1/d, (1, M))
+                self.eta = 0.01
+                approach = 'Adam'
+                self.op1 = optimize(approach)
+                self.op2 = optimize(approach)
+
+            def update(self, dW, db):
+                self.W += self.op1.update(dW)
+                self.b += self.op2.update(db)
+
+            def save(self, i):
+                np.save('./w{}'.format(i), self.W)
+                np.save('./b{}'.format(i), self.b)
+        \end{lstlisting}
+        重みWとバイアスbの初期化, 更新, 保存を行うクラスである.
+        \paragraph*{\_\_init\_\_(コンストラクタ)}
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item M: 次の層のノード数
+                \item d: 前の層のノード数
+            \end{itemize}
+            \subparagraph*{メンバ変数}
+            \begin{itemize}
+                \item W: 重み
+                \item b: バイアス
+                \item eta: 学習率
+                \item op1, op2: W, bの最適化を行うクラスのインスタンス
+            \end{itemize}
+            W, bをM, dに基づいて初期化し, それぞれを最適化するためのインスタンスを作成する.
+        \paragraph*{update関数}
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item dW: \(\displaystyle \frac{\partial E_n}{\partial W}\)
+                \item db: \(\displaystyle \frac{\partial E_n}{\partial b}\)
+            \end{itemize}
+            E: 損失関数である.
+            op1, op2によってW, bの値を更新する.
+        \paragraph*{save関数}
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item i: 文字列
+            \end{itemize}
+            入力iを受けてW, bをそれぞれwi, biという名前の.npyファイルで保存する.
+
+    \subsubsection{optimizeクラス}
+        \begin{lstlisting}[caption=パラメータ更新の手法選択,label=fuga]
+        class optimize:
+            def __init__(self, approach):
+                self.approach = approach
+                self.diff = 0
+                if approach == 'default':
+                    self.eta = 0.01
+                elif approach == 'SGD':
+                    self.eta = 0.01
+                    self.alpha = 0.9
+                elif approach == 'AdaGrad':
+                    self.h = 1e-8
+                    self.eta = 0.001
+                elif approach == 'RMSProp':
+                    self.h = 0
+                    self.eta = 0.001
+                    self.rho = 0.9
+                    self.epsilon = 1e-8
+                elif approach == 'AdaDelta':
+                    self.h = 0
+                    self.s = 0
+                    self.rho = 0.95
+                    self.epsilon = 1e-6
+                elif approach == 'Adam':
+                    self.t = 0
+                    self.m = 0
+                    self.v = 0
+                    self.alpha = 0.001
+                    self.beta1 = 0.9
+                    self.beta2 = 0.999
+                    self.epsilon = 1e-8
+
+            def update(self, d_):
+                if self.approach == 'default':
+                    self.diff = (-1) * self.eta * d_
+                elif self.approach == 'SGD':
+                    self.diff = self.alpha * self.diff - self.eta * d_
+                elif self.approach == 'AdaGrad':
+                    self.h = self.h + d_ * d_
+                    self.diff = (-1) * self.eta / np.sqrt(self.h) * d_
+                elif self.approach == 'RMSProp':
+                    self.h = self.rho * self.h + (1 - self.rho) * d_ * d_
+                    self.diff = (-1) * self.eta / (np.sqrt(self.h) + self.epsilon) * d_
+                elif self.approach == 'AdaDelta':
+                    self.h = self.rho * self.h + (1 - self.rho) * d_ * d_
+                    self.diff = (-1) * np.sqrt(self.s + self.epsilon) / np.sqrt(self.h + self.epsilon) * d_
+                    self.s = self.rho * self.s + (1 - self.rho) * self.diff * self.diff
+                elif self.approach == 'Adam':
+                    self.t = self.t + 1
+                    self.m = self.beta1 * self.m + (1 - self.beta1) * d_
+                    self.v = self.beta2 * self.v + (1 - self.beta2) * d_ * d_
+                    m_hat = self.m / (1 - self.beta1 ** self.t)
+                    v_hat = self.v / (1 - self.beta2 ** self.t)
+                    self.diff = (-1) * self.alpha * m_hat / (np.sqrt(v_hat) + self.epsilon)
+                return self.diff
+        \end{lstlisting}
+        パラメータ更新の手法を選択するためのクラスである.
+        \paragraph*{\_\_init\_\_(コンストラクタ)}
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item approach: 最適化の手法を表す文字列
+            \end{itemize}
+            \subparagraph*{メンバ変数(共通)}
+            \begin{itemize}
+                \item approach: 最適化の手法を表す文字列
+                \item diff: パラメータの更新前後の差分
+            \end{itemize}
+            入力approachを元にパラメータ更新の手法を選択し, それぞれの計算に必要な変数をメンバ変数として初期化する.
+        \paragraph*{update関数}
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item d\_: \(\displaystyle \frac{\partial E_n}{\partial W}\)
+            \end{itemize}
+            メンバ変数approachによって更新手法を制御し, それぞれのメンバ変数と入力d\_を元にdiffを計算する.
+
+
+    \subsubsection{load関数}
+        \begin{lstlisting}[caption=W, bの.npyファイルを読み込み,label=fuga]
+        def load(i):
+            W_loaded = np.load('./w{}.npy'.format(i))
+            b_loaded = np.load('./b{}.npy'.format(i))
+            return W_loaded, b_loaded
+        \end{lstlisting}
+        .npyファイルを読み込むための関数である.
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item i: 文字列
+            \end{itemize}
+            入力iを受けてwi.npy, bi.npyを読み込む.
+
+    \subsubsection{create\_batch関数}
+        \begin{lstlisting}[caption=ミニバッチを作成,label=fuga]
+        def create_batch(X):
+            batch_size = 100
+            np.random.seed(seed=32)
+            batch_index = np.random.choice(len(X), (600, batch_size))
+            return batch_index
+        \end{lstlisting}
+        ミニバッチのインデックスを作成するための関数である.
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item X: 元の画像データ
+            \end{itemize}
+            シードを固定し, 入力Xの長さ(画像データの数)以下の非負整数を600*batch\_sizeの行列に割り当てる.
+
+    \subsubsection{input\_layer\_train}
+        \begin{lstlisting}[caption=学習時の入力層の処理,label=fuga]
+        def input_layer_train(X, j):
+            batch_index = create_batch(X)
+            input_images = X[batch_index[j]] / 255
+            image_size = 784
+            class_num = 10
+            input_vector = input_images.reshape(100,image_size)
+            return input_vector, image_size, batch_index, class_num
+        \end{lstlisting}
+        学習時の入力層の処理を行う関数である.
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item X: 元の画像データ
+                \item j: batch\_indexの何行目を参照するかを指定するint
+            \end{itemize}
+            入力Xを引数にcreate\_batch関数を実行し, batch\_indexのj行目に対応するXを正規化しinput\_imagesに格納し, これをbatch\_size*image\_sizeの行列に変形する.
+
+    \subsubsection{matrix\_operationクラス}
+        \begin{lstlisting}[caption=線形和の計算 ,label=fuga]
+        class matrix_operation:
+            def __init__(self, W, b):
+                self.W = W
+                self.b = b
+                self.X = None
+
+            def forward(self, X):
+                self.X = X
+                y = np.dot(X, self.W) + self.b
+                return y
+
+            def backward(self, back):
+                dX = np.dot(back, self.W.T)
+                dW = np.dot(self.X.T, back)
+                db = np.sum(back, axis=0)
+                return dX, dW, db
+        \end{lstlisting}
+        線形和の計算に関するクラスである.
+        \paragraph*{\_\_init\_\_(コンストラクタ)}
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item W: 重み
+                \item b: バイアス
+            \end{itemize}
+            \subparagraph*{メンバ変数}
+            \begin{itemize}
+                \item W: 重み
+                \item b: バイアス
+                \item X: 順伝播の入力
+            \end{itemize}
+        \paragraph*{forward関数}
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item X: 順伝播の入力
+            \end{itemize}
+            X, W, bで線形和を計算する.
+        \paragraph*{backward関数}
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item back: \(\displaystyle \frac{\partial E_n}{\partial y}\)
+            \end{itemize}
+            順伝播の出力yによる偏微分backを入力として受け取り, これを元に\(\displaystyle \frac{\partial E_n}{\partial X}\), \(\displaystyle \frac{\partial E_n}{\partial W}\), \(\displaystyle \frac{\partial E_n}{\partial b}\)を計算する. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=ソフトマックス関数の計算とその逆伝播,label=fuga]
+        class softmax:
+            def __init__(self, batch_size):
+                self.y_pred = None
+                self.batch_size = batch_size
+
+            def forward(self, a):
+                alpha = np.tile(np.amax(a, axis=1), 10).reshape(10, self.batch_size).T
+                # print('max', alpha)
+                exp_a = np.exp(a - alpha)
+                # print('e', exp_a)
+                sum_exp = np.tile(np.sum(exp_a, axis=1), 10).reshape(10, self.batch_size).T
+                # print('sum', sum_exp)
+                self.y_pred = exp_a / sum_exp
+                return self.y_pred
+
+            def backward(self, y_ans, B):
+                da = (self.y_pred - y_ans) / B
+                return da
+        \end{lstlisting}
+        ソフトマックス関数についてのクラスである.
+        forward()でソフトマックス関数の適用を行い, backward()でその逆伝播の計算を行う.
+        なお, 課題2のレポートではalphaを計算する際にaxisを指定していなかったため, alphaが行列aの成分の中で最も大きい値を取っていたが, 本来は上記のコードのように行列aの各行の中で最も大きい値を取り, それを行列aと同じサイズに拡張した行列となる.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=ニューラルネットワーク,label=fuga]
+        class neural_network():
+            def __init__(self, batch_size, epoch, middle_layer, last):
+                self.batch_size = batch_size
+                self.epoch = epoch
+                self.middle_layer = middle_layer
+                self.last = last
+
+            def learning(self):
+                params1 = params(self.middle_layer, 784)
+                params2 = params(self.last, self.middle_layer)
+                for i in range(self.epoch):
+                    loss = []
+                    for j in range(int(60000 / self.batch_size)):
+                        input_vec, image_size, batch_index, class_sum = input_layer2(train_X, j)
+                        batch_label = train_Y[batch_index[j]]
+                        y_ans = np.identity(10)[batch_label]
+
+                        W1, b1 = params1.W, params1.b
+                        mo1 = matrix_operation(W1, b1)
+                        t = mo1.forward(input_vec)
+                        # print('matrix', t)
+                        sig = sigmoid()
+                        y1 = sig.forward(t)
+                        # print('sigmoid', y1)
+                        W2, b2 = params2.W, params2.b
+                        mo2 = matrix_operation(W2, b2)
+                        a = mo2.forward(y1)
+                        # print('a', a)
+                        soft = softmax(self.batch_size)
+                        y2 = soft.forward(a)
+                        # print(y2)
+                        # binary_y = postprocessing(y2)
+                        # print(binary_y)
+                        E = cross_entropy_loss(y2, y_ans)
+                        loss.append(E)
+
+                        da = soft.backward(y_ans, self.batch_size)
+                        dX2, dW2, db2 = mo2.backward(da)
+                        dt = sig.backward(dX2)
+                        dX1, dW1, db1 = mo1.backward(dt)
+                        params1.update(dW1, db1)
+                        params2.update(dW2, db2)
+
+                    print(np.sum(loss) / len(loss))
+
+                params1.save(1)
+                params2.save(2)
+
+            def testing(self):
+                input_vector, image_size, i, class_num = input_layer(test_X)
+                # y_ans = np.identity(10)[test_Y[i]]
+                W1, b1 = load(1)
+                mo1 = matrix_operation(W1, b1)
+                t = mo1.forward(input_vector)
+                # print('matrix', y1)
+                sig = sigmoid()
+                y1 = sig.forward(t)
+                # print('sigmoid', y1)
+                W2, b2 = load(2)
+                mo2 = matrix_operation(W2, b2)
+                a = mo2.forward(y1)
+                # print('a', a)
+                soft = softmax(1)
+                y2 = soft.forward(a)
+                # print(y2)
+                binary_y = postprocessing(y2)
+                print(np.where(binary_y == 1)[1][0], test_Y[i])
+        \end{lstlisting}
+        ここまでに作成したクラスや関数を用いてニューラルネットワークを構築する関数である.
+        \_\_init\_\_()でインスタンス化を行い, バッチサイズbatch\_size, エポックepoch, 中間層のノード数middle\_layer, 出力層のノード数(クラス数)lastを指定する.
+        learning()では1エポックを60000/batch\_size回の繰り返しとし, パラメータの更新を実行する. testing()では保存された.npyファイルからW1, W2, b1, b2を読み込み, これらのパラメータを使ってテストデータの画像認識を行い, ニューラルネットワークの計算結果と正解のラベルを標準出力に出力する.
+
+    \subsubsection*{}
+        \begin{lstlisting}[caption=課題3の実行,label=fuga]
+        nn = neural_network(100, 100, 50, 10)
+        print('学習を開始します. ')
+        nn.learning()
+        print('テストを開始します. ')
+        nn.testing()
+        \end{lstlisting}
+        neural\_networkクラスをインスタンス化し, 課題3を実行する.
+
+\subsection*{実行結果}
+    実行の結果, クロスエントロピー誤差が2.296782644875204から0.2190637709925514に減少し,重みW1, W2と切片ベクトルb1, b2のファイルが作成された. さらに, これらのファイルは正常に読み込まれた.
+
+\subsection*{工夫点}
+    \begin{itemize}
+        \item この後の課題でも活用しやすくするために関数を機能別でクラスに集約し, 実装した.
+        \item softmax関数で行列に関する演算を実装する際にfor文を使わず, numpyの機能を活用することで計算時間を抑えた.
+    \end{itemize}
+\subsection*{問題点}
+    \begin{itemize}
+        \item 課題2の時と比べるとクラスを活用することで改善されたことではあるが, バッチサイズを一箇所で管理できておらず, create\_batch(X)内のbatch\_sizeとは別でinput\_layer2(X)内でinput\_vectorを取得するためにバッチサイズである100をそのまま記述してしまっている. また, neural\_networkクラスでも改めて指定している.
+    \end{itemize}
+\end{document}
