@@ -1,4 +1,4 @@
-This is e-upTeX, Version 3.14159265-p3.8.2-u1.24-190131-2.6 (utf8.uptex) (TeX Live 2019) (preloaded format=uplatex 2019.6.29)  26 NOV 2020 00:31
+This is e-upTeX, Version 3.14159265-p3.8.2-u1.24-190131-2.6 (utf8.uptex) (TeX Live 2019) (preloaded format=uplatex 2019.6.29)  26 NOV 2020 02:06
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -186,6 +186,27 @@ LaTeX Warning: Label `fuga' multiply defined.
 
 LaTeX Warning: Label `fuga' multiply defined.
 
+
+LaTeX Warning: Label `fuga' multiply defined.
+
+
+LaTeX Warning: Label `fuga' multiply defined.
+
+
+LaTeX Warning: Label `fuga' multiply defined.
+
+
+LaTeX Warning: Label `fuga' multiply defined.
+
+
+LaTeX Warning: Label `fuga' multiply defined.
+
+
+LaTeX Warning: Label `fuga' multiply defined.
+
+
+LaTeX Warning: Label `fuga' multiply defined.
+
 )
 \openout1 = `report4.aux'.
 
@@ -257,43 +278,6 @@ LaTeX Font Info:    Font shape `JY2/mc/bx/n' in size <10> not available
 (Font)              Font shape `JY2/gt/m/n' tried instead on input line 44.
 LaTeX Font Info:    Font shape `JY2/gt/m/n' will be
 (Font)              scaled to size 9.6222pt on input line 44.
-
-
-./report4.tex:45: Package keyval Error: bの初期化 undefined.
-
-See the keyval package documentation for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.45 ...bの初期化, 更新, 保存 ,label=fuga]
-                                                  
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-./report4.tex:45: Package keyval Error: 更新 undefined.
-
-See the keyval package documentation for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.45 ...bの初期化, 更新, 保存 ,label=fuga]
-                                                  
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-./report4.tex:45: Package keyval Error: 保存 undefined.
-
-See the keyval package documentation for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.45 ...bの初期化, 更新, 保存 ,label=fuga]
-                                                  
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
 LaTeX Font Info:    Font shape `JT2/mc/m/n' will be
 (Font)              scaled to size 8.65997pt on input line 45.
 LaTeX Font Info:    Font shape `JY2/mc/m/n' will be
@@ -303,7 +287,7 @@ LaTeX Font Info:    Font shape `JT2/mc/m/n' will be
 LaTeX Font Info:    Font shape `JY2/mc/m/n' will be
 (Font)              scaled to size 6.73553pt on input line 46.
 LaTeX Font Info:    Try loading font information for OMS+cmr on input line 68.
-(/usr/local/texlive/2019/texmf-dist/tex/latex/base/omscmr.fd
+ (/usr/local/texlive/2019/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
@@ -327,31 +311,48 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 106.
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <9> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 129.
- [2]
+ [2] [3] [4] [5] [6]
+LaTeX Font Info:    Try loading font information for OML+cmr on input line 321.
+ (/usr/local/texlive/2019/texmf-dist/tex/latex/base/omlcmr.fd
+File: omlcmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OML/cmr/m/n' in size <9> not available
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 321.
+ [7] [8] [9] [10] [11] [12] [13]
+Overfull \hbox (1.71558pt too wide) in paragraph at lines 656--669
+ \OT1/cmr/bx/n/10 learn-ing \JY2/gt/m/n/10 関数 \JY2/mc/m/n/10 学習を行う\OT1/cmr/m/n/10 . \JY2/mc/m/n/10 入力層 $\OMS/cmsy/m/n/10 !$ \JY2/mc/m/n/10 線形和 $\OMS/cmsy/m/n/10 !$ \OT1/cmr/m/n/10 Batch[]Normalization$\OMS/cmsy/m/n/10 !$ \OT1/cmr/m/n/10 ReLU$\OMS/cmsy/m/n/10 !$ \OT1/cmr/m/n/10 Dropout$\OMS/cmsy/m/n/10 !$
+ []
 
-./report4.tex:172: Package keyval Error: bの.npyファイルを読み込み undefined.
+[14]
 
-See the keyval package documentation for explanation.
+./report4.tex:696: LaTeX Error: \begin{itemize} on input line 500 ended by \end{document}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.172 ...pyファイルを読み込み,label=fuga]
-                                                  
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
+l.696 \end{document}
+                    
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
 
-[3] [4] [5] [6] [7] [8] (./report4.aux)
+[15] (./report4.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
- ) 
+ )
+(\end occurred inside a group at level 1)
+
+### semi simple group (level 1) entered at line 500 (\begingroup)
+### bottom level 
 Here is how much of TeX's memory you used:
- 2748 strings out of 493212
- 35096 string characters out of 6144392
- 423744 words of memory out of 5000000
- 6771 multiletter control sequences out of 15000+600000
+ 2831 strings out of 493212
+ 36033 string characters out of 6144392
+ 445744 words of memory out of 5000000
+ 6851 multiletter control sequences out of 15000+600000
  12969 words of font info for 61 fonts, out of 8000000 for 9000
  929 hyphenation exceptions out of 8191
- 26i,6n,49p,452b,1752s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 26i,6n,49p,452b,1824s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on report4.dvi (9 pages, 35980 bytes).
+Output written on report4.dvi (16 pages, 60460 bytes).
