@@ -326,13 +326,49 @@ class neural_network():
         params1.save(1)
         params2.save(2)
     
-    def testing(self):
+    def testing(self, all_flag=1):
         # input_vector, image_size, i, class_num = input_layer(test_X)
         ans = []
         Batch_Normalization.mean_list = Batch_Normalization.mean_list.reshape([self.epoch, self.middle_layer])
         Batch_Normalization.var_list = Batch_Normalization.var_list.reshape([self.epoch, self.middle_layer])
         # print(Batch_Normalization.mean_list.shape)
-        for k in range(test_Y.shape[0]):
+        if all_flag == 1:
+            for k in range(test_Y.shape[0]):
+                input_vector, image_size, i, class_num = input_layer_test(test_X, k)
+                # y_ans = np.identity(10)[test_Y[i]]
+                W1, b1 = load(1)
+                mo1 = matrix_operation(W1, b1)
+                t = mo1.forward(input_vector)
+
+                bn = Batch_Normalization()
+                y_bn = bn.forward(t, 0)
+                # y_bn = t
+
+                # print('matrix', y1)
+                # sig = sigmoid()
+                # y1 = sig.forward(t)
+                re = ReLU()
+                y_re = re.forward(y_bn)
+                # print('sigmoid', y1)
+
+                dr = Dropout(0.2)
+                y1 = dr.forward(y_re, 0)
+
+                W2, b2 = load(2)
+                mo2 = matrix_operation(W2, b2)
+                a = mo2.forward(y1)
+                # print('a', a)
+
+                soft = softmax(1)
+                y2 = soft.forward(a)
+                # print(y2)
+                binary_y = postprocessing(y2)
+                # print(np.where(binary_y == 1)[1][0], test_Y[i])
+                eq = 1 if np.where(binary_y == 1)[1][0] == test_Y[i] else 0
+                ans.append(eq)
+            print(np.mean(ans))
+        else:
+            k = int(input('テストデータの何番目を試すか入力してください'))
             input_vector, image_size, i, class_num = input_layer_test(test_X, k)
             # y_ans = np.identity(10)[test_Y[i]]
             W1, b1 = load(1)
@@ -362,14 +398,10 @@ class neural_network():
             y2 = soft.forward(a)
             # print(y2)
             binary_y = postprocessing(y2)
-            # print(np.where(binary_y == 1)[1][0], test_Y[i])
-            eq = 1 if np.where(binary_y == 1)[1][0] == test_Y[i] else 0
-            ans.append(eq)
-        print(np.mean(ans))
-
+            print('予測結果: ', np.where(binary_y == 1)[1][0], '正解: ', test_Y[k])
 
 nn = neural_network(100, 20, 50, 10)
 print('学習を開始します. ')
 nn.learning()
 print('テストを開始します. ')
-nn.testing()
+nn.testing(all_flag=0)

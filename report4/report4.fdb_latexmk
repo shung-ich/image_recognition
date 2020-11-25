@@ -1,9 +1,9 @@
 # Fdb version 3
-["dvipdf"] 1606323990 "report4.dvi" "report4.pdf" "report4" 1606323993
-  "report4.dvi" 1606323990 60460 4cc7f4f81812b80def418ca8c517059c "latex"
+["dvipdf"] 1606326788 "report4.dvi" "report4.pdf" "report4" 1606326792
+  "report4.dvi" 1606326788 63852 fa69630ca88f07a81624d1cd506e62d6 "latex"
   (generated)
   "report4.pdf"
-["latex"] 1606323988 "report4.tex" "report4.dvi" "report4" 1606323993
+["latex"] 1606326786 "report4.tex" "report4.dvi" "report4" 1606326792
   "/usr/local/texlive/2019/texmf-dist/fonts/map/fontname/texfonts.map" 1511824771 3332 103109f5612ad95229751940c61aada0 ""
   "/usr/local/texlive/2019/texmf-dist/fonts/tfm/public/ascmac/ascgrp.tfm" 1520635638 448 9a1f3a95c3a7e2681aa6eefcf410b7ac ""
   "/usr/local/texlive/2019/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm" 1136768653 1328 c834bbb027764024c09d3d2bf908b5f0 ""
@@ -43,8 +43,8 @@
   "/usr/local/texlive/2019/texmf-dist/web2c/texmf.cnf" 1557092114 35484 cb1661360667bf4db662a8895053b554 ""
   "/usr/local/texlive/2019/texmf-var/web2c/euptex/uplatex.fmt" 1561795006 4520185 87c38412540796f1a4f02bea6edcdb52 ""
   "/usr/local/texlive/2019/texmf.cnf" 1557341546 577 d150fef99ac436ad1156e86b0892f6ef ""
-  "report4.aux" 1606323990 4184 0a58303fd132c660adf464a4adae1328 "latex"
-  "report4.tex" 1606323981 31451 cbd0bc22d4ff1b1a4632ec47e0e2b5d6 ""
+  "report4.aux" 1606326788 2324 7ca7457909d1570d9800fad51ca72601 "latex"
+  "report4.tex" 1606326785 33078 a557e3d7ed5cf4dfc03827c0d6814a69 ""
   (generated)
   "report4.log"
   "report4.aux"

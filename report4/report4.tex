@@ -40,8 +40,8 @@
 MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワークを用いて, 0～9の値のうち1つを出力するプログラムを作成した.
 
 \subsection*{作成したプログラムの説明}
-誤差逆伝播法を実装したため, 課題2の時点と比較して関数の数が大幅に増加したため, 既存の関数を機能別でクラスにまとめることで可読性と再利用性を高めた.
-    \subsubsection{paramsクラス}
+機能ごとにクラスや関数を実装している.
+    \subsubsection*{1. paramsクラス}
         \begin{lstlisting}[caption=パラメータWとbに関する処理 ,label=fuga]
         class params:
             def __init__(self, M, d):
@@ -82,7 +82,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
                 \item dW: \(\displaystyle \frac{\partial E_n}{\partial W}\)
                 \item db: \(\displaystyle \frac{\partial E_n}{\partial b}\)
             \end{itemize}
-            E: 損失関数である.
+            $E_n$: 損失関数である.
             op1, op2によってW, bの値を更新する.
         \paragraph*{save関数}
             \subparagraph*{入力}
@@ -91,7 +91,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \end{itemize}
             入力iを受けてW, bをそれぞれwi, biという名前の.npyファイルで保存する.
 
-    \subsubsection{optimizeクラス}
+    \subsubsection*{2. optimizeクラス}
         \begin{lstlisting}[caption=パラメータ更新の手法選択,label=fuga]
         class optimize:
             def __init__(self, approach):
@@ -159,7 +159,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
                 \item approach: 最適化の手法を表す文字列
                 \item diff: パラメータの更新前後の差分
             \end{itemize}
-            入力approachを元にパラメータ更新の手法を選択し, それぞれの計算に必要な変数をメンバ変数として初期化する.
+            入力approachを元にパラメータ更新の手法を選択し, それぞれの計算に必要な変数をメンバ変数を初期化する.
         \paragraph*{update関数}
             \subparagraph*{入力}
             \begin{itemize}
@@ -168,7 +168,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             メンバ変数approachによって更新手法を制御し, それぞれのメンバ変数と入力d\_を元にdiffを計算する.
 
 
-    \subsubsection{load関数}
+    \subsubsection*{3. load関数}
         \begin{lstlisting}[caption=Wとbの.npyファイルを読み込み,label=fuga]
         def load(i):
             W_loaded = np.load('./w{}.npy'.format(i))
@@ -182,7 +182,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \end{itemize}
             入力iを受けてwi.npy, bi.npyを読み込む.
 
-    \subsubsection{create\_batch関数}
+    \subsubsection*{4. create\_batch関数}
         \begin{lstlisting}[caption=ミニバッチを作成,label=fuga]
         def create_batch(X):
             batch_size = 100
@@ -195,9 +195,9 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \begin{itemize}
                 \item X: 元の画像データ
             \end{itemize}
-            シードを固定し, 入力Xの長さ(画像データの数)以下の非負整数を600*batch\_sizeの行列に割り当てる.
+            シードを固定し, 0以上入力Xの長さ(画像データの数)以下の非負整数を600*batch\_sizeの行列に割り当てる.
 
-    \subsubsection{input\_layer\_train}
+    \subsubsection*{5. input\_layer\_train}
         \begin{lstlisting}[caption=学習時の入力層の処理,label=fuga]
         def input_layer_train(X, j):
             batch_index = create_batch(X)
@@ -215,7 +215,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \end{itemize}
             入力Xを引数にcreate\_batch関数を実行し, batch\_indexのj行目に対応するXを正規化しinput\_imagesに格納し, これをbatch\_size*image\_sizeの行列に変形する.
 
-    \subsubsection{input\_layer\_train}
+    \subsubsection*{6. input\_layer\_test}
         \begin{lstlisting}[caption=テストの入力層の処理,label=fuga]
         def input_layer_test(X, i):
             input_image = X[i] / 255
@@ -225,7 +225,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             input_vector = input_image.reshape(1,image_size)
             return input_vector, image_size, i, class_num
         \end{lstlisting}
-        学習時の入力層の処理を行う関数である.
+        テスト時の入力層の処理を行う関数である.
             \subparagraph*{入力}
             \begin{itemize}
                 \item X: 元の画像データ
@@ -233,7 +233,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \end{itemize}
             入力Xのi番目のデータを正規化しベクトルに変換する.
 
-    \subsubsection{matrix\_operationクラス}
+    \subsubsection*{7. matrix\_operationクラス}
         \begin{lstlisting}[caption=線形和の計算 ,label=fuga]
         class matrix_operation:
             def __init__(self, W, b):
@@ -278,7 +278,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \end{itemize}
             順伝播の出力yによる偏微分backを入力として受け取り, これを元に\(\displaystyle \frac{\partial E_n}{\partial X}\), \(\displaystyle \frac{\partial E_n}{\partial W}\), \(\displaystyle \frac{\partial E_n}{\partial b}\)を計算する.
 
-    \subsubsection{sigmoidクラス}
+    \subsubsection*{8. sigmoidクラス}
         \begin{lstlisting}[caption=シグモイド関数の計算 ,label=fuga]
         class sigmoid:
             def __init__(self):
@@ -311,7 +311,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \end{itemize}
             順伝播の出力yによる偏微分backを入力として受け取り, これを元に\(\displaystyle \frac{\partial E_n}{\partial t}\)を計算する.
 
-    \subsubsection{ReLUクラス}
+    \subsubsection*{9. ReLUクラス}
         \begin{lstlisting}[caption=ReLU関数の計算 ,label=fuga]
         class ReLU():
             def __init__(self):
@@ -344,7 +344,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \end{itemize}
             順伝播の出力aによる偏微分backを入力として受け取り, これを元に\(\displaystyle \frac{\partial E_n}{\partial t}\)を計算する.
 
-    \subsubsection{Dropoutクラス}
+    \subsubsection*{10. Dropoutクラス}
         \begin{lstlisting}[caption=Dropout関数の計算 ,label=fuga]
         def __init__(self, rho):
             self.rho = rho
@@ -368,7 +368,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \subparagraph*{メンバ変数}
             \begin{itemize}
                 \item rho: 無視するノードの割合
-                \item mask: 無視しない/する要素の位置をTrue/Falseとした行列
+                \item mask: 無視しない/する要素の位置をそれぞれTrue/Falseとした行列
             \end{itemize}
         \paragraph*{forward関数}
             \subparagraph*{入力}
@@ -385,7 +385,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \end{itemize}
             順伝播の出力aによる偏微分backを入力として受け取り, これを元に\(\displaystyle \frac{\partial E_n}{\partial t}\)を計算する.
 
-    \subsubsection{Batch\_Normalizationクラス}
+    \subsubsection*{11. Batch\_Normalizationクラス}
         \begin{lstlisting}[caption=Batch\_Normalizationに関する計算 ,label=fuga]
         class Batch_Normalization():
             mean_list = []
@@ -464,7 +464,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             順伝播の出力yによる偏微分backを入力として受け取り, これを元に\(\displaystyle \frac{\partial E_n}{\partial x}\), \(\displaystyle \frac{\partial E_n}{\partial gamma}\), \(\displaystyle \frac{\partial E_n}{\partial beta}\)を計算する.
             また, gammaとbetaの更新を行う.
 
-    \subsubsection{softmaxクラス}
+    \subsubsection*{12. softmaxクラス}
         \begin{lstlisting}[caption=ソフトマックス関数の計算 ,label=fuga]
         class softmax:
             def __init__(self, batch_size):
@@ -486,7 +486,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
         \paragraph*{\_\_init\_\_(コンストラクタ)}
             \subparagraph*{メンバ変数}
             \begin{itemize}
-                \item y\_pred: 順伝播の出力
+                \item y\_pred: 出力層の出力
                 \item batch\_size: バッチサイズ
             \end{itemize}
         \paragraph*{forward関数}
@@ -500,9 +500,10 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \begin{itemize}
                 \item y\_ans: 正解クラスをone-hot vector表記にしたもの
                 \item B: バッチサイズ
+            \end{itemize}
             y\_ans, B入力として受け取り, これを元に\(\displaystyle \frac{\partial E_n}{\partial a}\)を計算する.
 
-    \subsubsection{postprocessing関数}
+    \subsubsection*{13. postprocessing関数}
         \begin{lstlisting}[caption=後処理,label=fuga]
         def postprocessing(y):
             binary_y = np.where(y == np.amax(y, axis=1), 1, 0)
@@ -515,7 +516,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \end{itemize}
             yを受け取り, 行ごとに最も大きい値を1, それ以外を0にする.
 
-    \subsubsection{cross\_entropy\_loss関数}
+    \subsubsection*{14. cross\_entropy\_loss関数}
         \begin{lstlisting}[caption=クロスエントロピー誤差の計算,label=fuga]
         def cross_entropy_loss(y_pred, y_ans):
             B = len(y_pred)
@@ -530,7 +531,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             \end{itemize}
             y\_predとy\_ansによってクロスエントロピー誤差を計算する.
 
-    \subsubsection{neural\_networkクラス}
+    \subsubsection*{15. neural\_networkクラス}
         \begin{lstlisting}[caption=3層ニューラルネットワークの構成 ,label=fuga]
         class neural_network():
             def __init__(self, batch_size, epoch, middle_layer, last):
@@ -601,13 +602,49 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
                 params1.save(1)
                 params2.save(2)
 
-            def testing(self):
+            def testing(self, all_flag=1):
                 # input_vector, image_size, i, class_num = input_layer(test_X)
                 ans = []
                 Batch_Normalization.mean_list = Batch_Normalization.mean_list.reshape([self.epoch, self.middle_layer])
                 Batch_Normalization.var_list = Batch_Normalization.var_list.reshape([self.epoch, self.middle_layer])
                 # print(Batch_Normalization.mean_list.shape)
-                for k in range(test_Y.shape[0]):
+                if all_flag == 1:
+                    for k in range(test_Y.shape[0]):
+                        input_vector, image_size, i, class_num = input_layer_test(test_X, k)
+                        # y_ans = np.identity(10)[test_Y[i]]
+                        W1, b1 = load(1)
+                        mo1 = matrix_operation(W1, b1)
+                        t = mo1.forward(input_vector)
+
+                        bn = Batch_Normalization()
+                        y_bn = bn.forward(t, 0)
+                        # y_bn = t
+
+                        # print('matrix', y1)
+                        # sig = sigmoid()
+                        # y1 = sig.forward(t)
+                        re = ReLU()
+                        y_re = re.forward(y_bn)
+                        # print('sigmoid', y1)
+
+                        dr = Dropout(0.2)
+                        y1 = dr.forward(y_re, 0)
+
+                        W2, b2 = load(2)
+                        mo2 = matrix_operation(W2, b2)
+                        a = mo2.forward(y1)
+                        # print('a', a)
+
+                        soft = softmax(1)
+                        y2 = soft.forward(a)
+                        # print(y2)
+                        binary_y = postprocessing(y2)
+                        # print(np.where(binary_y == 1)[1][0], test_Y[i])
+                        eq = 1 if np.where(binary_y == 1)[1][0] == test_Y[i] else 0
+                        ans.append(eq)
+                    print(np.mean(ans))
+                else:
+                    k = int(input('テストデータの何番目を試すか入力してください'))
                     input_vector, image_size, i, class_num = input_layer_test(test_X, k)
                     # y_ans = np.identity(10)[test_Y[i]]
                     W1, b1 = load(1)
@@ -637,10 +674,7 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
                     y2 = soft.forward(a)
                     # print(y2)
                     binary_y = postprocessing(y2)
-                    # print(np.where(binary_y == 1)[1][0], test_Y[i])
-                    eq = 1 if np.where(binary_y == 1)[1][0] == test_Y[i] else 0
-                    ans.append(eq)
-                print(np.mean(ans))
+                    print('予測結果: ', np.where(binary_y == 1)[1][0], '正解: ', test_Y[k])
         \end{lstlisting}
         ニューラルネットワークの構成に関するクラスである.
         \paragraph*{\_\_init\_\_(コンストラクタ)}
@@ -667,30 +701,35 @@ MNISTのテスト画像1枚を入力とし, 3層ニューラルネットワー�
             1エポックごとにクロスエントロピー誤差とBatch\_Normalizationの平均, 分散をそれぞれリストに格納する.
             そして, 学習終了後に重みWとバイアスbを.npyファイルとして保存する.
         \paragraph*{testing関数}
-            学習時に保存した.npyファイルを読み込み, 全テストデータに関してニューラルネットワークの計算を行う. 最後に正解率を標準出力に出力する.
+            \subparagraph*{入力}
+            \begin{itemize}
+                \item all\_flag: テストデータ全てを活用するか1つを活用するか制御するフラグ
+            \end{itemize}
+            学習時に保存した.npyファイルを読み込み, 全テストデータに関してニューラルネットワークの計算を行う.
+            all\_flagが1であればテストデータの全てに関して計算を実行し, 最後に正解率を標準出力に出力する. 一方all\_flagが0であれば標準入力でテストデータの何番目を活用するか受け取り, 最後に計算による予測結果と正解を標準出力に出力する.
 
-    \subsubsection{学習とテストの実行}
+    \subsubsection*{学習とテストの実行}
         \begin{lstlisting}[caption=学習とテストの実行,label=fuga]
         nn = neural_network(100, 20, 50, 10)
         print('学習を開始します. ')
         nn.learning()
         print('テストを開始します. ')
-        nn.testing()
+        nn.testing(all_flag=0)
         \end{lstlisting}
         neural\_networkクラスをインスタンス化し, 学習とテストを実行する.
         なお, バッチサイズ: 100, エポック数: 20, 中間層のノード数: 50, 出力層のノード数: 10で実行した.
 
 \subsection*{実行結果}
 クロスエントロピー誤差が0.7203779372223761から0.05723036650842045まで減少し,
-テストデータの正解率は95.87\%となった.
+多くのテストデータについて正解を導けた. なお, all\_flag=1とし, 全てのテストデータに関して実行すると正解率は95.87\%となった.
 
 \subsection*{工夫点}
     \begin{itemize}
-        \item この後の課題でも活用しやすくするために関数を機能別でクラスに集約し, 実装した.
-        \item softmax関数で行列に関する演算を実装する際にfor文を使わず, numpyの機能を活用することで計算時間を抑えた.
+        \item 機能ごとクラスを作成することで可読性と保守性を高めた.
+        \item 様々な行列に関する演算を実装する際にfor文を使わず, numpyの機能を活用することで計算時間を抑えた.
     \end{itemize}
 \subsection*{問題点}
     \begin{itemize}
-        \item 課題2の時と比べるとクラスを活用することで改善されたことではあるが, バッチサイズを一箇所で管理できておらず, create\_batch(X)内のbatch\_sizeとは別でinput\_layer2(X)内でinput\_vectorを取得するためにバッチサイズである100をそのまま記述してしまっている. また, neural\_networkクラスでも改めて指定している.
+        \item バッチサイズを一箇所で管理できていない.
     \end{itemize}
 \end{document}

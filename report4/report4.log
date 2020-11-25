@@ -1,4 +1,4 @@
-This is e-upTeX, Version 3.14159265-p3.8.2-u1.24-190131-2.6 (utf8.uptex) (TeX Live 2019) (preloaded format=uplatex 2019.6.29)  26 NOV 2020 02:06
+This is e-upTeX, Version 3.14159265-p3.8.2-u1.24-190131-2.6 (utf8.uptex) (TeX Live 2019) (preloaded format=uplatex 2019.6.29)  26 NOV 2020 02:53
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -161,53 +161,7 @@ Package: jlisting 2006/02/20 0.2 (Thor)
 File: lstlang1.sty 2019/02/27 1.8b listings language file
 ) (/usr/local/texlive/2019/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2019/02/27 1.8b (Carsten Heinz)
-) (./report4.aux
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-
-LaTeX Warning: Label `fuga' multiply defined.
-
-)
+) (./report4.aux)
 \openout1 = `report4.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 27.
@@ -287,7 +241,8 @@ LaTeX Font Info:    Font shape `JT2/mc/m/n' will be
 LaTeX Font Info:    Font shape `JY2/mc/m/n' will be
 (Font)              scaled to size 6.73553pt on input line 46.
 LaTeX Font Info:    Try loading font information for OMS+cmr on input line 68.
- (/usr/local/texlive/2019/texmf-dist/tex/latex/base/omscmr.fd
+
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
@@ -318,41 +273,35 @@ File: omlcmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OML/cmr/m/n' in size <9> not available
 (Font)              Font shape `OML/cmm/m/it' tried instead on input line 321.
- [7] [8] [9] [10] [11] [12] [13]
-Overfull \hbox (1.71558pt too wide) in paragraph at lines 656--669
- \OT1/cmr/bx/n/10 learn-ing \JY2/gt/m/n/10 関数 \JY2/mc/m/n/10 学習を行う\OT1/cmr/m/n/10 . \JY2/mc/m/n/10 入力層 $\OMS/cmsy/m/n/10 !$ \JY2/mc/m/n/10 線形和 $\OMS/cmsy/m/n/10 !$ \OT1/cmr/m/n/10 Batch[]Normalization$\OMS/cmsy/m/n/10 !$ \OT1/cmr/m/n/10 ReLU$\OMS/cmsy/m/n/10 !$ \OT1/cmr/m/n/10 Dropout$\OMS/cmsy/m/n/10 !$
- []
+ [7] [8] [9] [10] [11] [12] [13] [14] [15] (./report4.aux)
 
-[14]
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
-./report4.tex:696: LaTeX Error: \begin{itemize} on input line 500 ended by \end{document}.
+ ) 
+Here is how much of TeX's memory you used:
+ 2835 strings out of 493212
+ 36079 string characters out of 6144392
+ 460744 words of memory out of 5000000
+ 6855 multiletter control sequences out of 15000+600000
+ 12969 words of font info for 61 fonts, out of 8000000 for 9000
+ 929 hyphenation exceptions out of 8191
+ 26i,6n,49p,363b,1752s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.696 \end{document}
-                    
-Your command was ignored.
-Type  I <command> <return>  to replace it with another command,
-or  <return>  to continue without it.
-
-[15] (./report4.aux)
+Output written on report4.dvi (16 pages, 63852 bytes).
+  Font shape `OML/cmr/m/n' in size <9> not available
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 321.
+ [7] [8] [9] [10] [11] [12] [13] [14] [15] (./report4.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
- )
-(\end occurred inside a group at level 1)
-
-### semi simple group (level 1) entered at line 500 (\begingroup)
-### bottom level 
+ ) 
 Here is how much of TeX's memory you used:
- 2831 strings out of 493212
- 36033 string characters out of 6144392
- 445744 words of memory out of 5000000
- 6851 multiletter control sequences out of 15000+600000
+ 2835 strings out of 493212
+ 36079 string characters out of 6144392
+ 460744 words of memory out of 5000000
+ 6855 multiletter control sequences out of 15000+600000
  12969 words of font info for 61 fonts, out of 8000000 for 9000
  929 hyphenation exceptions out of 8191
- 26i,6n,49p,452b,1824s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 26i,6n,49p,363b,1752s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on report4.dvi (16 pages, 60460 bytes).
+Output written on report4.dvi (16 pages, 63852 bytes).
